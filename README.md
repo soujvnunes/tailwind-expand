@@ -43,27 +43,81 @@ pnpm add tailwind-expand
 
 ## Setup
 
-**babel.config.js:**
+This package provides three plugins:
 
-```js
-module.exports = {
+1. **Babel plugin** - transforms JSX className attributes
+2. **Vite plugin** - strips `@expand` blocks from CSS (for `@tailwindcss/vite`)
+3. **PostCSS plugin** - strips `@expand` blocks from CSS (for PostCSS setups)
+
+### Vite + React (Tailwind v4)
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite'
+import tailwindcss from '@tailwindcss/vite'
+import react from '@vitejs/plugin-react'
+import tailwindExpand from 'tailwind-expand'
+import tailwindExpandVite from 'tailwind-expand/vite'
+
+export default defineConfig({
   plugins: [
-    ['tailwind-expand', {
-      cssPath: './src/globals.css',
-    }],
+    // Strip @expand blocks BEFORE Tailwind processes CSS
+    tailwindExpandVite(),
+    tailwindcss(),
+    react({
+      babel: {
+        plugins: [
+          [tailwindExpand, { cssPath: './src/globals.css' }],
+        ],
+      },
+    }),
   ],
-};
+})
 ```
 
-**Next.js (next.config.js):**
+### Next.js
 
 ```js
+// next.config.js
 module.exports = {
   experimental: {
-    // If using SWC, you'll need to disable it for this plugin
-    forceSwcTransforms: false,
+    forceSwcTransforms: false, // Required to use Babel plugins
   },
-};
+}
+```
+
+```js
+// babel.config.js
+module.exports = {
+  presets: ['next/babel'],
+  plugins: [
+    ['tailwind-expand', { cssPath: './src/globals.css' }],
+  ],
+}
+```
+
+```js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    'tailwind-expand/postcss': {},
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+### PostCSS (standalone)
+
+```js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    'tailwind-expand/postcss': {},
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
 ```
 
 ## Define Aliases
