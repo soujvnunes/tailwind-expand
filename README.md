@@ -46,7 +46,7 @@ pnpm add tailwind-expand
 This package provides three plugins:
 
 1. **Babel plugin** - transforms JSX className attributes
-2. **Vite plugin** - strips `@expand` blocks from CSS (for `@tailwindcss/vite`)
+2. **Vite plugin** - transforms `@expand` blocks and ensures Tailwind generates utilities (for `@tailwindcss/vite`)
 3. **PostCSS plugin** - strips `@expand` blocks from CSS (for PostCSS setups)
 
 ### Vite + React (Tailwind v4)
@@ -61,7 +61,7 @@ import tailwindExpandVite from 'tailwind-expand/vite'
 
 export default defineConfig({
   plugins: [
-    // Strip @expand blocks BEFORE Tailwind processes CSS
+    // Transform @expand blocks and inject utilities for Tailwind
     tailwindExpandVite(),
     tailwindcss(),
     react({
