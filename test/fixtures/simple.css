@@ -1,0 +1,3 @@
+@expand Button {
+  @apply text-sm inline-flex items-center;
+}

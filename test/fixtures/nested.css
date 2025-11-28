@@ -1,0 +1,11 @@
+@expand Button {
+  @apply text-sm;
+
+  &Md {
+    @apply h-10 px-4;
+  }
+
+  &Lg {
+    @apply h-12 px-6;
+  }
+}
