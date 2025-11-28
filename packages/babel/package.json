@@ -1,0 +1,65 @@
+{
+  "name": "tailwind-expand",
+  "version": "0.1.0",
+  "description": "Expand CSS component aliases into Tailwind utility classes at build time",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./postcss": {
+      "types": "./dist/postcss.d.ts",
+      "require": "./dist/postcss.js",
+      "import": "./dist/postcss.mjs"
+    },
+    "./vite": {
+      "types": "./dist/vite.d.ts",
+      "require": "./dist/vite.js",
+      "import": "./dist/vite.mjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": [
+    "tailwind",
+    "tailwindcss",
+    "babel",
+    "babel-plugin",
+    "css",
+    "utility-classes"
+  ],
+  "author": "Vitor Nunes",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/soujvnunes/tailwind-expand.git",
+    "directory": "packages/babel"
+  },
+  "peerDependencies": {
+    "@babel/core": "^7.0.0"
+  },
+  "dependencies": {
+    "postcss": "^8.4.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-react": "^7.24.0",
+    "@types/babel__core": "^7.20.0",
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vite": "^7.2.4",
+    "vitest": "^1.4.0"
+  }
+}

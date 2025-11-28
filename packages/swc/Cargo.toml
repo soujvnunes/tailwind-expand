@@ -1,0 +1,23 @@
+[package]
+name = "tailwind-expand-swc"
+version = "0.1.0"
+edition = "2021"
+description = "SWC plugin for tailwind-expand"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+swc_core = { version = "10", features = [
+    "ecma_plugin_transform",
+    "ecma_visit",
+    "ecma_ast",
+    "ecma_utils",
+] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+lto = true
+opt-level = "s"
