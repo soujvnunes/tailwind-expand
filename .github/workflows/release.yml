@@ -26,7 +26,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
@@ -34,10 +34,10 @@ jobs:
         run: pnpm install
 
       - name: Build all packages
-        run: pnpm -r build
+        run: pnpm --filter './packages/*' build
 
       - name: Run tests
-        run: pnpm -r test:run
+        run: pnpm --filter './packages/*' test:run
 
       - name: Security audit
         run: pnpm audit --audit-level=high
