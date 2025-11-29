@@ -4,9 +4,13 @@
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "test:run": "pnpm -r test:run"
+    "test:run": "pnpm -r test:run",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build && pnpm -r publish --access public --no-git-checks"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.27.0",
     "typescript": "^5.4.0"
   }
 }
