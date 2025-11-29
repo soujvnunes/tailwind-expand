@@ -1,5 +1,3 @@
-import './globals.css'
-
 function App() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -57,7 +55,7 @@ function App() {
         {/* Important Modifier */}
         <section className="space-y-4">
           <h2 className="TypographyCaption text-gray-500">Important Modifier</h2>
-          <button className="Button ButtonMd ButtonPrimary !bg-purple-600 hover:!bg-purple-700">
+          <button className="Button ButtonMd ButtonPrimary !ButtonSecondary">
             Overridden with !important
           </button>
         </section>
