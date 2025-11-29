@@ -24,7 +24,7 @@ export default defineConfig({
     tailwindcss(),
     react({
       babel: {
-        plugins: [[babel, { cssPath: './src/globals.css' }]],
+        plugins: [babel({ cssPath: './src/globals.css' })],
       },
     }),
   ],
@@ -38,15 +38,6 @@ export default defineConfig({
 3. **Injects `@source inline()`** directive with collected utilities for Tailwind to generate
 
 This ensures Tailwind CSS v4 generates the utility classes needed for responsive and state variants.
-
-## Options
-
-```ts
-vite({
-  // CSS file containing @expand blocks (auto-detected by default)
-  cssPath: './src/globals.css',
-})
-```
 
 ## License
 
