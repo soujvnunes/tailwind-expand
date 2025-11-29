@@ -26,6 +26,9 @@
     "url": "https://github.com/soujvnunes/tailwind-expand",
     "directory": "packages/vite"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "vite": ">=5.0.0"
   },

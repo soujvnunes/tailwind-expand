@@ -26,6 +26,9 @@
     "url": "https://github.com/soujvnunes/tailwind-expand.git",
     "directory": "packages/postcss"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "postcss": ">=8.0.0"
   },

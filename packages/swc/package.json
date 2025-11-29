@@ -42,6 +42,9 @@
     "url": "https://github.com/soujvnunes/tailwind-expand.git",
     "directory": "packages/swc"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=18"
   },

@@ -27,6 +27,9 @@
     "url": "https://github.com/soujvnunes/tailwind-expand.git",
     "directory": "packages/babel"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {
     "@tailwind-expand/core": "workspace:*"
   },
