@@ -7,7 +7,7 @@ const fixture = (name: string) => path.join(__dirname, 'fixtures', name);
 
 const transform = (code: string) =>
   transformSync(code, {
-    plugins: [[babel, { cssPath: fixture('globals.css') }]],
+    plugins: [babel({ cssPath: fixture('globals.css') })],
     presets: ['@babel/preset-react'],
   })?.code;
 

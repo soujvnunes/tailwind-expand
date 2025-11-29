@@ -65,7 +65,7 @@ export default defineConfig({
     tailwindcss(),
     react({
       babel: {
-        plugins: [[babel, { cssPath: './src/globals.css' }]],
+        plugins: [babel({ cssPath: './src/globals.css' })],
       },
     }),
   ],
@@ -105,7 +105,7 @@ export default {
 
 ### Other Frameworks (PostCSS + Babel)
 
-For frameworks using PostCSS:
+For frameworks using PostCSS (see [Tailwind PostCSS installation](https://tailwindcss.com/docs/installation/using-postcss)):
 
 ```bash
 pnpm add -D @tailwind-expand/postcss @tailwind-expand/babel
@@ -124,10 +124,10 @@ module.exports = {
 
 ```js
 // babel.config.js
+const { babel } = require('@tailwind-expand/babel')
+
 module.exports = {
-  plugins: [
-    ['@tailwind-expand/babel', { cssPath: './src/globals.css' }],
-  ],
+  plugins: [babel({ cssPath: './src/globals.css' })],
 }
 ```
 

@@ -5,7 +5,7 @@ import { createBabelVisitor } from './visitor';
 // Cache for alias maps (keyed by CSS content hash)
 const cache = new Map<string, AliasMap>();
 
-export function babel(
+function babelPlugin(
   _: unknown, // Babel API (unused)
   options: ExpandPluginOptions
 ): PluginObj {
@@ -27,6 +27,23 @@ export function babel(
   }
 
   return createBabelVisitor(expandedAliases);
+}
+
+/**
+ * Creates a Babel plugin tuple for use in babel config.
+ *
+ * @example
+ * // vite.config.ts
+ * react({
+ *   babel: {
+ *     plugins: [babel({ cssPath: './src/globals.css' })],
+ *   },
+ * })
+ */
+export function babel(
+  options: ExpandPluginOptions
+): [typeof babelPlugin, ExpandPluginOptions] {
+  return [babelPlugin, options];
 }
 
 // Export types for consumers

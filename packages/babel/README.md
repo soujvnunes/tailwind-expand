@@ -22,7 +22,7 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
-        plugins: [[babel, { cssPath: './src/globals.css' }]],
+        plugins: [babel({ cssPath: './src/globals.css' })],
       },
     }),
   ],
@@ -33,10 +33,10 @@ export default defineConfig({
 
 ```js
 // babel.config.js
+const { babel } = require('@tailwind-expand/babel')
+
 module.exports = {
-  plugins: [
-    ['@tailwind-expand/babel', { cssPath: './src/globals.css' }],
-  ],
+  plugins: [babel({ cssPath: './src/globals.css' })],
 }
 ```
 

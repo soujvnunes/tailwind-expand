@@ -12,7 +12,7 @@ export default defineConfig({
     tailwindcss(),
     react({
       babel: {
-        plugins: [[babel, { cssPath: './src/globals.css' }]],
+        plugins: [babel({ cssPath: './src/globals.css' })],
       },
     }),
   ],
