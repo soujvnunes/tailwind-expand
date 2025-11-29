@@ -1,0 +1,42 @@
+{
+  "name": "@tailwind-expand/postcss",
+  "version": "0.1.0",
+  "description": "PostCSS plugin for tailwind-expand",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest",
+    "test:run": "vitest run"
+  },
+  "keywords": ["tailwind", "css", "postcss", "plugin"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/soujvnunes/tailwind-expand.git",
+    "directory": "packages/postcss"
+  },
+  "peerDependencies": {
+    "postcss": ">=8.0.0"
+  },
+  "dependencies": {
+    "@tailwind-expand/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "postcss": "^8.4.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
+  }
+}
