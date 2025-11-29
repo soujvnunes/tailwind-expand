@@ -1,6 +1,6 @@
 {
   "name": "@tailwind-expand/vite",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Vite plugin for tailwind-expand",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -13,13 +13,20 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "test": "vitest",
     "test:run": "vitest run"
   },
-  "keywords": ["tailwind", "css", "vite", "plugin"],
+  "keywords": [
+    "tailwind",
+    "css",
+    "vite",
+    "plugin"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",

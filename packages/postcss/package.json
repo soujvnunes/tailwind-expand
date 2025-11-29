@@ -1,6 +1,6 @@
 {
   "name": "@tailwind-expand/postcss",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "PostCSS plugin for tailwind-expand",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -13,13 +13,20 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "test": "vitest",
     "test:run": "vitest run"
   },
-  "keywords": ["tailwind", "css", "postcss", "plugin"],
+  "keywords": [
+    "tailwind",
+    "css",
+    "postcss",
+    "plugin"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",

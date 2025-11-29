@@ -1,6 +1,6 @@
 {
   "name": "@tailwind-expand/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Core utilities for tailwind-expand",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -13,13 +13,19 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup",
     "test": "vitest",
     "test:run": "vitest run"
   },
-  "keywords": ["tailwind", "css", "expand"],
+  "keywords": [
+    "tailwind",
+    "css",
+    "expand"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
