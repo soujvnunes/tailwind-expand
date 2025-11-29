@@ -1,21 +1,36 @@
 # tailwind-expand
 
-Expand CSS component aliases into Tailwind utility classes at build time.
+[![npm version](https://img.shields.io/npm/v/@tailwind-expand/core.svg)](https://www.npmjs.com/package/@tailwind-expand/core)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/soujvnunes/tailwind-expand/actions/workflows/release.yml/badge.svg)](https://github.com/soujvnunes/tailwind-expand/actions/workflows/release.yml)
 
-## Problem
+**Transform CSS component aliases into Tailwind utility classes at build time.**
 
-Tailwind's `@apply` creates CSS classes with utility rules baked in. This means:
+Define reusable component styles with familiar `@apply` syntax, then use them in JSX with full variant support.
 
-- DevTools shows `.Button` instead of actual utilities
-- CSS bundle contains duplicate rules
-- No way to compose aliases with variants like `lg:Button`
+## The Problem
 
-## Solution
-
-Define component aliases in CSS, expand them to utility classes in JSX at build time.
+Tailwind's `@apply` creates CSS classes with utility rules baked in:
 
 ```css
-/* Input: globals.css */
+/* Using @apply */
+.Button {
+  @apply text-sm inline-flex items-center;
+}
+```
+
+This approach has limitations:
+
+- **DevTools opacity**: Browser shows `.Button` instead of actual utilities
+- **Bundle bloat**: CSS contains duplicate rules across components
+- **No variant composition**: Can't use `lg:Button` or `hover:Button`
+
+## The Solution
+
+**tailwind-expand** lets you define component aliases in CSS and expands them to utility classes in your JSX at build time:
+
+```css
+/* globals.css */
 @expand Button {
   @apply text-sm inline-flex items-center;
 
@@ -26,22 +41,29 @@ Define component aliases in CSS, expand them to utility classes in JSX at build 
 ```
 
 ```jsx
-/* Input */
+// Your component
 <button className="Button ButtonMd lg:Button" />
 
-/* Output (after build) */
+// After build
 <button className="text-sm inline-flex items-center h-10 px-4 lg:text-sm lg:inline-flex lg:items-center" />
 ```
 
+### Benefits
+
+- **Full transparency**: DevTools shows actual utility classes
+- **Zero runtime**: All expansion happens at build time
+- **Variant support**: Use `lg:`, `hover:`, `!` prefixes with any alias
+- **Familiar syntax**: Define aliases using `@apply` you already know
+
 ## Packages
 
-| Package | Description |
-|---------|-------------|
-| [@tailwind-expand/vite](./packages/vite) | Vite plugin for Tailwind CSS v4 |
-| [@tailwind-expand/postcss](./packages/postcss) | PostCSS plugin to strip @expand blocks |
-| [@tailwind-expand/babel](./packages/babel) | Babel plugin for JSX transformation |
-| [@tailwind-expand/swc](./packages/swc) | SWC plugin for Next.js |
-| [@tailwind-expand/core](./packages/core) | Shared utilities (internal) |
+| Package | Version | Description |
+|---------|---------|-------------|
+| [@tailwind-expand/vite](./packages/vite) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/vite.svg)](https://www.npmjs.com/package/@tailwind-expand/vite) | Vite plugin for Tailwind CSS v4 |
+| [@tailwind-expand/postcss](./packages/postcss) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/postcss.svg)](https://www.npmjs.com/package/@tailwind-expand/postcss) | PostCSS plugin to strip @expand blocks |
+| [@tailwind-expand/babel](./packages/babel) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/babel.svg)](https://www.npmjs.com/package/@tailwind-expand/babel) | Babel plugin for JSX transformation |
+| [@tailwind-expand/swc](./packages/swc) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/swc.svg)](https://www.npmjs.com/package/@tailwind-expand/swc) | SWC plugin for Next.js/Turbopack |
+| [@tailwind-expand/core](./packages/core) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/core.svg)](https://www.npmjs.com/package/@tailwind-expand/core) | Shared utilities (internal) |
 
 ## Quick Start
 
@@ -61,7 +83,7 @@ import { babel } from '@tailwind-expand/babel'
 
 export default defineConfig({
   plugins: [
-    vite(),           // Handles CSS and injects utilities for Tailwind
+    vite(),           // Must come before tailwindcss
     tailwindcss(),
     react({
       babel: {
@@ -103,7 +125,7 @@ export default {
 }
 ```
 
-### Other Frameworks (PostCSS + Babel)
+### Other Frameworks
 
 For frameworks using PostCSS (see [Tailwind PostCSS installation](https://tailwindcss.com/docs/installation/using-postcss)):
 
@@ -131,11 +153,14 @@ module.exports = {
 }
 ```
 
-## Define Aliases
+## Usage
 
-**globals.css:**
+### Define Aliases
+
+Create component aliases using the `@expand` at-rule with nested modifiers:
 
 ```css
+/* globals.css */
 @expand Button {
   @apply text-sm font-medium inline-flex items-center;
 
@@ -153,7 +178,7 @@ module.exports = {
 }
 ```
 
-## Use in Components
+### Use in Components
 
 ```jsx
 // Input
@@ -167,7 +192,9 @@ module.exports = {
 </button>
 ```
 
-## With Variants
+### Variant Support
+
+Use Tailwind variants with any alias:
 
 ```jsx
 // Responsive
@@ -176,11 +203,11 @@ module.exports = {
 // States
 <button className="Button hover:ButtonPrimary" />
 
-// Important
+// Important modifier
 <button className="!Button" />
 ```
 
-## Alias References
+### Alias Composition
 
 Aliases can reference other aliases:
 
@@ -208,6 +235,10 @@ Aliases can reference other aliases:
 - [Vite + React](./examples/vite-react)
 - [Next.js](./examples/nextjs)
 
+## Contributing
+
+Contributions are welcome! Please read our contributing guidelines before submitting a PR.
+
 ## License
 
-MIT
+MIT © [Victor Nunes](https://github.com/soujvnunes)
