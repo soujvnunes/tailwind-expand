@@ -1,5 +1,0 @@
-@expand Typography {
-  &Heading {
-    @apply text-lg font-bold;
-  }
-}

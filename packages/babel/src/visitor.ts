@@ -1,6 +1,6 @@
 import type { PluginObj, NodePath } from '@babel/core';
 import type * as t from '@babel/types';
-import type { AliasMap } from './types';
+import type { AliasMap } from '@tailwind-expand/core';
 
 export function createBabelVisitor(aliases: AliasMap): PluginObj {
   return {

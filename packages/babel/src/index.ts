@@ -1,13 +1,11 @@
 import type { PluginObj } from '@babel/core';
-import { extract } from './extractor';
-import { expand } from './expander';
-import { createBabelVisitor } from './babel';
-import type { ExpandPluginOptions, AliasMap } from './types';
+import { extract, expand, type AliasMap, type ExpandPluginOptions } from '@tailwind-expand/core';
+import { createBabelVisitor } from './visitor';
 
 // Cache for alias maps (keyed by CSS content hash)
 const cache = new Map<string, AliasMap>();
 
-export default function tailwindExpand(
+export function babel(
   _: unknown, // Babel API (unused)
   options: ExpandPluginOptions
 ): PluginObj {

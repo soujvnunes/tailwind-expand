@@ -1,7 +1,0 @@
-@expand Button {
-  @apply text-sm;
-}
-
-@expand Button {
-  @apply font-bold;
-}

@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { transformSync } from '@babel/core';
-import plugin from '../src/index';
+import { babel } from '../src/index';
 import path from 'path';
+
+const fixture = (name: string) => path.join(__dirname, 'fixtures', name);
 
 const transform = (code: string) =>
   transformSync(code, {
-    plugins: [
-      [plugin, { cssPath: path.join(__dirname, 'fixtures/globals.css') }],
-    ],
+    plugins: [[babel, { cssPath: fixture('globals.css') }]],
     presets: ['@babel/preset-react'],
   })?.code;
 
