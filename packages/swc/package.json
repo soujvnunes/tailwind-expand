@@ -15,13 +15,16 @@
   },
   "files": [
     "dist",
-    "tailwind_expand_swc.wasm"
+    "tailwind_expand_swc.wasm",
+    "tailwind_expand_swc.wasm.sha256"
   ],
   "scripts": {
-    "build:wasm": "cargo build-wasi --release && cp target/wasm32-wasip1/release/tailwind_expand_swc.wasm .",
+    "build:wasm": "cargo build --target wasm32-wasip1 --release && cp target/wasm32-wasip1/release/tailwind_expand_swc.wasm .",
     "build:ts": "tsup",
     "build": "pnpm build:wasm && pnpm build:ts",
-    "prepublishOnly": "pnpm run build"
+    "checksum": "shasum -a 256 tailwind_expand_swc.wasm > tailwind_expand_swc.wasm.sha256",
+    "verify": "shasum -a 256 -c tailwind_expand_swc.wasm.sha256",
+    "prepublishOnly": "pnpm run build && pnpm run checksum"
   },
   "keywords": [
     "swc",

@@ -1,0 +1,78 @@
+name: Build WASM
+
+on:
+  push:
+    paths:
+      - 'packages/swc/**'
+      - '.github/workflows/build-wasm.yml'
+  pull_request:
+    paths:
+      - 'packages/swc/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/swc
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        run: |
+          rustup toolchain install 1.82.0 --profile minimal
+          rustup default 1.82.0
+          rustup target add wasm32-wasip1
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            packages/swc/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('packages/swc/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Build WASM (release)
+        run: cargo build --target wasm32-wasip1 --release
+        env:
+          # Ensure reproducible builds
+          CARGO_INCREMENTAL: 0
+          RUSTFLAGS: '-C debuginfo=0'
+
+      - name: Copy WASM to package root
+        run: cp target/wasm32-wasip1/release/tailwind_expand_swc.wasm .
+
+      - name: Generate checksum
+        run: |
+          sha256sum tailwind_expand_swc.wasm > tailwind_expand_swc.wasm.sha256
+          cat tailwind_expand_swc.wasm.sha256
+
+      - name: Upload WASM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasm-binary
+          path: |
+            packages/swc/tailwind_expand_swc.wasm
+            packages/swc/tailwind_expand_swc.wasm.sha256
+          retention-days: 30
+
+  verify:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download WASM artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: wasm-binary
+          path: packages/swc
+
+      - name: Verify checksum
+        working-directory: packages/swc
+        run: sha256sum -c tailwind_expand_swc.wasm.sha256
