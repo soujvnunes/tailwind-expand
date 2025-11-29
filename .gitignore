@@ -1,4 +1,37 @@
+# Dependencies
 node_modules/
+
+# Build outputs
 dist/
 *.log
+
+# Rust/Cargo
+packages/swc/target/
+Cargo.lock
+
+# WASM artifacts (built, not source)
+*.wasm
+
+# Next.js
+.next/
+out/
+
+# Vite
+.vite/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test coverage
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
