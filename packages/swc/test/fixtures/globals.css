@@ -1,0 +1,17 @@
+@expand Button {
+  @apply text-xs inline-flex items-center;
+
+  &Md {
+    @apply h-10 px-4;
+  }
+
+  &Lg {
+    @apply h-12 px-6;
+  }
+}
+
+@expand Typography {
+  &Caption {
+    @apply text-xs font-bold uppercase;
+  }
+}

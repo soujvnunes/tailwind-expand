@@ -22,6 +22,8 @@
     "build:wasm": "cargo build --target wasm32-wasip1 --release && cp target/wasm32-wasip1/release/tailwind_expand_swc.wasm .",
     "build:ts": "tsup",
     "build": "pnpm build:wasm && pnpm build:ts",
+    "test": "vitest",
+    "test:run": "vitest run",
     "checksum": "shasum -a 256 tailwind_expand_swc.wasm > tailwind_expand_swc.wasm.sha256",
     "verify": "shasum -a 256 -c tailwind_expand_swc.wasm.sha256",
     "prepublishOnly": "pnpm run build && pnpm run checksum"
@@ -35,7 +37,7 @@
     "turbopack",
     "rspack"
   ],
-  "author": "Vitor Nunes",
+  "author": "Victor Nunes",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -54,6 +56,7 @@
   "devDependencies": {
     "@types/node": "^20.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.4.0"
+    "typescript": "^5.4.0",
+    "vitest": "^1.4.0"
   }
 }
