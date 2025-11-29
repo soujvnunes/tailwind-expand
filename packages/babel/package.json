@@ -20,7 +20,7 @@
     "test:run": "vitest run"
   },
   "keywords": ["tailwind", "css", "babel", "plugin"],
-  "author": "Vitor Nunes",
+  "author": "Victor Nunes",
   "license": "MIT",
   "repository": {
     "type": "git",
