@@ -1,0 +1,31 @@
+@expand Typography {
+  &Caption {
+    @apply text-xs font-bold uppercase;
+  }
+  &Body {
+    @apply text-md font-normal;
+  }
+  &Heading {
+    @apply text-lg font-bold;
+  }
+}
+
+@expand Button {
+  @apply TypographyCaption inline-flex items-center text-center;
+
+  &Md {
+    @apply h-10 px-4 rounded-md;
+  }
+
+  &Lg {
+    @apply h-12 px-6 rounded-lg;
+  }
+
+  &Main {
+    @apply bg-amber-500 hover:bg-amber-600;
+  }
+
+  &GitHub {
+    @apply text-slate-950 dark:text-white bg-slate-100 dark:bg-slate-800;
+  }
+}

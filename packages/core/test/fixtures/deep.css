@@ -1,0 +1,11 @@
+@expand Button {
+  @apply text-sm;
+
+  &Main {
+    @apply bg-amber-500;
+
+    &Outline {
+      @apply bg-transparent border;
+    }
+  }
+}
