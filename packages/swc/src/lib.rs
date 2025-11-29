@@ -1,19 +1,21 @@
 use serde::Deserialize;
+use std::collections::HashMap;
 use swc_core::{
     ecma::{
-        ast::{Expr, JSXAttrValue, JSXExpr, Lit, Program, Str},
-        visit::{as_folder, FoldWith, VisitMut, VisitMutWith},
+        ast::{JSXAttrValue, Lit, Program},
+        visit::{visit_mut_pass, VisitMut, VisitMutWith},
     },
     plugin::{plugin_transform, proxies::TransformPluginProgramMetadata},
 };
-use std::collections::HashMap;
 
 /// Plugin configuration
 #[derive(Debug, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Config {
-    /// Path to the CSS file containing @expand definitions
-    pub css_path: Option<String>,
+    /// Pre-expanded aliases map (alias name -> expanded utilities)
+    /// This is passed from the TypeScript wrapper which reads CSS and expands using core
+    #[serde(default)]
+    pub aliases: HashMap<String, String>,
 }
 
 /// Alias map: alias name -> expanded utilities
@@ -26,15 +28,7 @@ pub struct TailwindExpandVisitor {
 
 impl TailwindExpandVisitor {
     pub fn new(config: Config) -> Self {
-        let aliases = if let Some(css_path) = config.css_path {
-            // TODO: Read and parse CSS file to extract @expand blocks
-            // For now, return empty map
-            extract_aliases_from_css(&css_path).unwrap_or_default()
-        } else {
-            HashMap::new()
-        };
-
-        Self { aliases }
+        Self { aliases: config.aliases }
     }
 
     /// Expand a className string by replacing aliases with their utilities
@@ -107,20 +101,14 @@ impl VisitMut for TailwindExpandVisitor {
 
         // Handle string literal className
         if let JSXAttrValue::Lit(Lit::Str(str_lit)) = value {
-            let expanded = self.expand_class_name(&str_lit.value);
-            if expanded != str_lit.value.as_str() {
-                *str_lit = Str::from(expanded);
+            let val = str_lit.value.as_str();
+            let expanded = self.expand_class_name(val);
+            if expanded != val {
+                str_lit.value = expanded.into();
+                str_lit.raw = None;
             }
         }
     }
-}
-
-/// Extract aliases from CSS file
-/// TODO: Implement proper CSS parsing
-fn extract_aliases_from_css(_css_path: &str) -> Option<AliasMap> {
-    // TODO: Read file and parse @expand blocks
-    // This should match the logic in packages/babel/src/extractor.ts
-    Some(HashMap::new())
 }
 
 #[plugin_transform]
@@ -132,5 +120,64 @@ pub fn process_transform(program: Program, metadata: TransformPluginProgramMetad
     )
     .unwrap_or_default();
 
-    program.fold_with(&mut as_folder(TailwindExpandVisitor::new(config)))
+    program.apply(visit_mut_pass(TailwindExpandVisitor::new(config)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_expand_token_direct_alias() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("Button".to_string(), "px-4 py-2".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        assert_eq!(visitor.expand_token("Button"), "px-4 py-2");
+    }
+
+    #[test]
+    fn test_expand_token_with_variant() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("ButtonMd".to_string(), "h-10 px-4".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        assert_eq!(visitor.expand_token("lg:ButtonMd"), "lg:h-10 lg:px-4");
+    }
+
+    #[test]
+    fn test_expand_token_with_important() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("Button".to_string(), "px-4 py-2".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        assert_eq!(visitor.expand_token("!Button"), "!px-4 !py-2");
+    }
+
+    #[test]
+    fn test_expand_class_name() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("Button".to_string(), "px-4 py-2".to_string());
+        aliases.insert("ButtonMd".to_string(), "h-10".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        assert_eq!(
+            visitor.expand_class_name("Button lg:ButtonMd text-white"),
+            "px-4 py-2 lg:h-10 text-white"
+        );
+    }
+
+    #[test]
+    fn test_config_with_aliases() {
+        let config = Config {
+            aliases: [
+                ("Button".to_string(), "px-4 py-2".to_string()),
+                ("ButtonMd".to_string(), "h-10".to_string()),
+            ].into_iter().collect(),
+        };
+
+        let visitor = TailwindExpandVisitor::new(config);
+        assert_eq!(visitor.expand_token("Button"), "px-4 py-2");
+        assert_eq!(visitor.expand_token("lg:ButtonMd"), "lg:h-10");
+    }
 }

@@ -1,13 +1,26 @@
 {
-  "name": "tailwind-expand-swc",
+  "name": "@tailwind-expand/swc",
   "version": "0.1.0",
-  "description": "SWC plugin for tailwind-expand - expand CSS aliases in Next.js with Turbopack",
-  "main": "tailwind_expand_swc.wasm",
+  "description": "SWC plugin for tailwind-expand - expand CSS aliases in SWC-based tools",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js"
+    }
+  },
   "files": [
+    "dist",
     "tailwind_expand_swc.wasm"
   ],
   "scripts": {
-    "build": "cargo build-wasi --release && cp target/wasm32-wasip1/release/tailwind_expand_swc.wasm .",
+    "build:wasm": "cargo build-wasi --release && cp target/wasm32-wasip1/release/tailwind_expand_swc.wasm .",
+    "build:ts": "tsup",
+    "build": "pnpm build:wasm && pnpm build:ts",
     "prepublishOnly": "pnpm run build"
   },
   "keywords": [
@@ -16,7 +29,8 @@
     "tailwind",
     "tailwindcss",
     "nextjs",
-    "turbopack"
+    "turbopack",
+    "rspack"
   ],
   "author": "Vitor Nunes",
   "license": "MIT",
@@ -25,10 +39,15 @@
     "url": "https://github.com/soujvnunes/tailwind-expand.git",
     "directory": "packages/swc"
   },
-  "peerDependencies": {
-    "tailwind-expand": "workspace:*"
-  },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@tailwind-expand/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0"
   }
 }
