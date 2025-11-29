@@ -50,7 +50,7 @@ The WASM plugin then transforms JSX className attributes using the provided alia
 ### Prerequisites
 
 1. Install Rust: https://rustup.rs/
-2. The `rust-toolchain.toml` will automatically install the correct Rust version (1.82.0) and WASM target
+2. The `rust-toolchain.toml` will automatically install the correct Rust version (1.83.0) and WASM target
 
 ### Build
 
