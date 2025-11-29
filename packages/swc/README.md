@@ -1,10 +1,53 @@
-# tailwind-expand-swc
+# @tailwind-expand/swc
 
 SWC plugin for tailwind-expand. Enables className expansion in Next.js with Turbopack.
 
-> **Status**: Work in Progress
+## Installation
 
-## Prerequisites
+```bash
+pnpm add -D @tailwind-expand/swc @tailwind-expand/postcss
+```
+
+## Usage
+
+```ts
+// next.config.ts
+import { swc } from '@tailwind-expand/swc'
+
+const nextConfig = {
+  experimental: {
+    swcPlugins: [swc({ cssPath: './app/globals.css' })],
+  },
+}
+
+export default nextConfig
+```
+
+```js
+// postcss.config.mjs
+import { postcss } from '@tailwind-expand/postcss'
+
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {},
+    ...postcss(),
+  },
+}
+```
+
+## How It Works
+
+The SWC plugin runs inside a WASI sandbox which cannot access the filesystem directly. This package includes a TypeScript wrapper that:
+
+1. Reads the CSS file at build time
+2. Extracts and expands all aliases using `@tailwind-expand/core`
+3. Passes pre-expanded aliases to the WASM plugin
+
+The WASM plugin then transforms JSX className attributes using the provided aliases.
+
+## Building from Source
+
+### Prerequisites
 
 1. Install Rust: https://rustup.rs/
 2. Add WASM target:
@@ -12,33 +55,15 @@ SWC plugin for tailwind-expand. Enables className expansion in Next.js with Turb
    rustup target add wasm32-wasip1
    ```
 
-## Development
+### Build
 
 ```bash
-# Build the plugin
+cd packages/swc
 cargo build-wasi --release
-
-# Copy to package root for npm
 cp target/wasm32-wasip1/release/tailwind_expand_swc.wasm .
+pnpm build
 ```
 
-## Usage with Next.js
+## License
 
-```js
-// next.config.js
-module.exports = {
-  experimental: {
-    swcPlugins: [
-      ["tailwind-expand-swc", { cssPath: "./app/globals.css" }]
-    ]
-  }
-}
-```
-
-## TODO
-
-- [ ] Implement CSS file reading and @expand block parsing
-- [ ] Add support for alias references (TypographyCaption in Button)
-- [ ] Add tests
-- [ ] Handle template literals
-- [ ] Handle cn() / clsx() calls
+MIT

@@ -1,6 +1,6 @@
 # tailwind-expand
 
-A Babel plugin that expands CSS component aliases into Tailwind utility classes at build time.
+Expand CSS component aliases into Tailwind utility classes at build time.
 
 ## Problem
 
@@ -26,49 +26,46 @@ Define component aliases in CSS, expand them to utility classes in JSX at build 
 ```
 
 ```jsx
-/* Input: Component.jsx */
+/* Input */
 <button className="Button ButtonMd lg:Button" />
 
-/* Output: Component.jsx (after build) */
+/* Output (after build) */
 <button className="text-sm inline-flex items-center h-10 px-4 lg:text-sm lg:inline-flex lg:items-center" />
 ```
 
-## Installation
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| [@tailwind-expand/vite](./packages/vite) | Vite plugin for Tailwind CSS v4 |
+| [@tailwind-expand/postcss](./packages/postcss) | PostCSS plugin to strip @expand blocks |
+| [@tailwind-expand/babel](./packages/babel) | Babel plugin for JSX transformation |
+| [@tailwind-expand/swc](./packages/swc) | SWC plugin for Next.js |
+| [@tailwind-expand/core](./packages/core) | Shared utilities (internal) |
+
+## Quick Start
+
+### Vite + React
 
 ```bash
-npm install tailwind-expand
-# or
-pnpm add tailwind-expand
+pnpm add -D @tailwind-expand/vite @tailwind-expand/babel
 ```
-
-## Setup
-
-This package provides three plugins:
-
-1. **Babel plugin** - transforms JSX className attributes
-2. **Vite plugin** - transforms `@expand` blocks and ensures Tailwind generates utilities (for `@tailwindcss/vite`)
-3. **PostCSS plugin** - strips `@expand` blocks from CSS (for PostCSS setups)
-
-### Vite + React (Tailwind v4)
 
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import tailwindExpand from 'tailwind-expand'
-import tailwindExpandVite from 'tailwind-expand/vite'
+import { vite } from '@tailwind-expand/vite'
+import { babel } from '@tailwind-expand/babel'
 
 export default defineConfig({
   plugins: [
-    // Transform @expand blocks and inject utilities for Tailwind
-    tailwindExpandVite(),
+    vite(),           // Handles CSS and injects utilities for Tailwind
     tailwindcss(),
     react({
       babel: {
-        plugins: [
-          [tailwindExpand, { cssPath: './src/globals.css' }],
-        ],
+        plugins: [[babel, { cssPath: './src/globals.css' }]],
       },
     }),
   ],
@@ -77,11 +74,50 @@ export default defineConfig({
 
 ### Next.js
 
-```js
-// next.config.js
-module.exports = {
+```bash
+pnpm add -D @tailwind-expand/postcss @tailwind-expand/swc
+```
+
+```ts
+// next.config.ts
+import { swc } from '@tailwind-expand/swc'
+
+const nextConfig = {
   experimental: {
-    forceSwcTransforms: false, // Required to use Babel plugins
+    swcPlugins: [swc({ cssPath: './app/globals.css' })],
+  },
+}
+
+export default nextConfig
+```
+
+```js
+// postcss.config.mjs
+import { postcss } from '@tailwind-expand/postcss'
+
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {},
+    ...postcss(),
+  },
+}
+```
+
+### Other Frameworks (PostCSS + Babel)
+
+For frameworks using PostCSS:
+
+```bash
+pnpm add -D @tailwind-expand/postcss @tailwind-expand/babel
+```
+
+```js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    '@tailwind-expand/postcss': {},
+    tailwindcss: {},
+    autoprefixer: {},
   },
 }
 ```
@@ -89,34 +125,9 @@ module.exports = {
 ```js
 // babel.config.js
 module.exports = {
-  presets: ['next/babel'],
   plugins: [
-    ['tailwind-expand', { cssPath: './src/globals.css' }],
+    ['@tailwind-expand/babel', { cssPath: './src/globals.css' }],
   ],
-}
-```
-
-```js
-// postcss.config.js
-module.exports = {
-  plugins: {
-    'tailwind-expand/postcss': {},
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-}
-```
-
-### PostCSS (standalone)
-
-```js
-// postcss.config.js
-module.exports = {
-  plugins: {
-    'tailwind-expand/postcss': {},
-    tailwindcss: {},
-    autoprefixer: {},
-  },
 }
 ```
 
@@ -191,6 +202,11 @@ Aliases can reference other aliases:
 2. **No inheritance**: Modifiers don't inherit parent styles—compose explicitly
 3. **Single entry file**: Define all aliases in one CSS file
 4. **Unknown classes preserved**: Classes not matching aliases are left untouched
+
+## Examples
+
+- [Vite + React](./examples/vite-react)
+- [Next.js](./examples/nextjs)
 
 ## License
 
