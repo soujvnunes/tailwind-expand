@@ -1,12 +1,16 @@
 # tailwind-expand
 
-[![npm version](https://img.shields.io/npm/v/@tailwind-expand/core.svg)](https://www.npmjs.com/package/@tailwind-expand/core)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/soujvnunes/tailwind-expand/actions/workflows/release.yml/badge.svg)](https://github.com/soujvnunes/tailwind-expand/actions/workflows/release.yml)
+A namespace for build-time Tailwind CSS expansion plugins. Transform CSS component aliases into utility classes in your JSX.
 
-**Transform CSS component aliases into Tailwind utility classes at build time.**
+| Package | Details |
+|---------|---------|
+| [@tailwind-expand/vite](./packages/vite) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/vite.svg)](https://www.npmjs.com/package/@tailwind-expand/vite) Vite plugin for Tailwind CSS v4 |
+| [@tailwind-expand/postcss](./packages/postcss) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/postcss.svg)](https://www.npmjs.com/package/@tailwind-expand/postcss) PostCSS plugin to strip @expand blocks |
+| [@tailwind-expand/babel](./packages/babel) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/babel.svg)](https://www.npmjs.com/package/@tailwind-expand/babel) Babel plugin for JSX transformation |
+| [@tailwind-expand/swc](./packages/swc) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/swc.svg)](https://www.npmjs.com/package/@tailwind-expand/swc) SWC plugin for Next.js/Turbopack |
+| [@tailwind-expand/core](./packages/core) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/core.svg)](https://www.npmjs.com/package/@tailwind-expand/core) Shared utilities (internal) |
 
-Define reusable component styles with familiar `@apply` syntax, then use them in JSX with full variant support.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) [![CI](https://github.com/soujvnunes/tailwind-expand/actions/workflows/release.yml/badge.svg)](https://github.com/soujvnunes/tailwind-expand/actions/workflows/release.yml)
 
 ## The Problem
 
@@ -54,16 +58,6 @@ This approach has limitations:
 - **Zero runtime**: All expansion happens at build time
 - **Variant support**: Use `lg:`, `hover:`, `!` prefixes with any alias
 - **Familiar syntax**: Define aliases using `@apply` you already know
-
-## Packages
-
-| Package | Version | Description |
-|---------|---------|-------------|
-| [@tailwind-expand/vite](./packages/vite) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/vite.svg)](https://www.npmjs.com/package/@tailwind-expand/vite) | Vite plugin for Tailwind CSS v4 |
-| [@tailwind-expand/postcss](./packages/postcss) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/postcss.svg)](https://www.npmjs.com/package/@tailwind-expand/postcss) | PostCSS plugin to strip @expand blocks |
-| [@tailwind-expand/babel](./packages/babel) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/babel.svg)](https://www.npmjs.com/package/@tailwind-expand/babel) | Babel plugin for JSX transformation |
-| [@tailwind-expand/swc](./packages/swc) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/swc.svg)](https://www.npmjs.com/package/@tailwind-expand/swc) | SWC plugin for Next.js/Turbopack |
-| [@tailwind-expand/core](./packages/core) | [![npm](https://img.shields.io/npm/v/@tailwind-expand/core.svg)](https://www.npmjs.com/package/@tailwind-expand/core) | Shared utilities (internal) |
 
 ## Quick Start
 
@@ -255,7 +249,7 @@ Use Tailwind states with any alias. Each utility in the alias gets the state pre
 <button className="Button ButtonSm lg:ButtonMd hover:ButtonPrimary !ButtonMd" />
 
 // Output (after build)
-<button className="text-xs font-bold uppercase inline-flex items-center h-8 px-3 lg:h-10 lg:px-4 hover:bg-primary hover:text-white hover:hover:bg-primary/90 !h-10 !px-4" />
+<button className="text-xs font-bold uppercase inline-flex items-center h-8 px-3 lg:h-10 lg:px-4 hover:bg-primary hover:text-white hover:bg-primary/90 !h-10 !px-4" />
 ```
 
 ### Handling Utility Collisions

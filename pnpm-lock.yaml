@@ -140,6 +140,9 @@ importers:
       '@babel/preset-react':
         specifier: ^7.24.0
         version: 7.28.5(@babel/core@7.28.5)
+      '@babel/types':
+        specifier: ^7.24.0
+        version: 7.28.5
       '@types/babel__core':
         specifier: ^7.20.0
         version: 7.20.5

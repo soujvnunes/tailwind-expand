@@ -1,26 +1,29 @@
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import type { AliasMap } from './types';
+import { applyVariantPrefix } from './utils';
 
 /**
  * Collect variant-prefixed alias usage from source code
  * e.g., lg:ButtonMd → collect lg:h-10 lg:px-4
+ * e.g., dark:hover:ButtonMd → collect dark:hover:h-10 dark:hover:px-4
  */
 export function collectVariantAliases(
   code: string,
   aliases: AliasMap,
   variantUtilities: Set<string>
 ): void {
-  // Match variant:AliasName patterns (e.g., lg:ButtonMd, hover:Button, md:!ButtonSm)
-  const variantAliasRegex = /([a-z][a-z0-9-]*:!?[A-Z][a-zA-Z0-9]*)/g;
+  // Match variant:AliasName patterns with chained variants
+  // e.g., lg:ButtonMd, hover:Button, dark:hover:ButtonMd, md:!ButtonSm
+  const variantAliasRegex = /((?:[a-z][a-z0-9-]*:)+!?[A-Z][a-zA-Z0-9]*)/g;
   let match;
 
   while ((match = variantAliasRegex.exec(code)) !== null) {
     const fullMatch = match[1];
-    // Extract variant and alias name
-    const colonIndex = fullMatch.indexOf(':');
-    const variant = fullMatch.slice(0, colonIndex);
-    let aliasName = fullMatch.slice(colonIndex + 1);
+    // Extract variant prefix (with colon) and alias name using last colon
+    const lastColonIndex = fullMatch.lastIndexOf(':');
+    const variantPrefix = fullMatch.slice(0, lastColonIndex + 1);
+    let aliasName = fullMatch.slice(lastColonIndex + 1);
 
     // Handle important modifier
     if (aliasName.startsWith('!')) {
@@ -31,7 +34,7 @@ export function collectVariantAliases(
     if (aliases[aliasName]) {
       const utilities = aliases[aliasName].split(/\s+/);
       for (const util of utilities) {
-        variantUtilities.add(`${variant}:${util}`);
+        variantUtilities.add(applyVariantPrefix(variantPrefix, util));
       }
     }
   }

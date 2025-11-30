@@ -1,6 +1,6 @@
 import type { PluginObj, NodePath } from '@babel/core';
 import type * as t from '@babel/types';
-import type { AliasMap } from '@tailwind-expand/core';
+import { applyVariantPrefix, type AliasMap } from '@tailwind-expand/core';
 
 export function createBabelVisitor(aliases: AliasMap): PluginObj {
   return {
@@ -54,7 +54,7 @@ function transformExpression(expr: t.Expression, aliases: AliasMap): void {
 
     case 'CallExpression':
       // className={cn("Button", condition && "ButtonMd")}
-      expr.arguments.forEach((arg) => {
+      expr.arguments.forEach(arg => {
         if (arg.type === 'StringLiteral') {
           arg.value = expandClassString(arg.value, aliases);
         } else if (arg.type === 'LogicalExpression') {
@@ -146,9 +146,9 @@ function expandToken(token: string, aliases: AliasMap): string {
   const utilities = aliases[aliasName].split(/\s+/);
 
   const expanded = utilities.map((util) => {
-    // Combine: !prefix + variantPrefix + utility
-    // If utility already has variants (e.g., "hover:bg-blue"), prepend our variant
-    return importantPrefix + variantPrefix + util;
+    // Apply variant prefix with deduplication, then add important prefix
+    const prefixedUtil = applyVariantPrefix(variantPrefix, util);
+    return importantPrefix + prefixedUtil;
   });
 
   return expanded.join(' ');

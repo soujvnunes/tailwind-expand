@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use swc_core::{
     ecma::{
         ast::{JSXAttrValue, Lit, Program},
@@ -20,6 +20,45 @@ pub struct Config {
 
 /// Alias map: alias name -> expanded utilities
 type AliasMap = HashMap<String, String>;
+
+/// Insert important modifier after all variant prefixes.
+/// e.g., insert_important("bg-primary") → "!bg-primary"
+/// e.g., insert_important("hover:bg-primary") → "hover:!bg-primary"
+fn insert_important(utility: &str) -> String {
+    if let Some(last_colon) = utility.rfind(':') {
+        format!("{}!{}", &utility[..last_colon + 1], &utility[last_colon + 1..])
+    } else {
+        format!("!{}", utility)
+    }
+}
+
+/// Apply variant prefix to utility, deduplicating overlapping variants.
+/// e.g., apply_variant_prefix("hover:", "hover:bg-primary") → "hover:bg-primary"
+/// e.g., apply_variant_prefix("dark:hover:", "hover:bg-primary") → "dark:hover:bg-primary"
+fn apply_variant_prefix(variant_prefix: &str, utility: &str) -> String {
+    if variant_prefix.is_empty() {
+        return utility.to_string();
+    }
+
+    // "dark:hover:" → {"dark", "hover"}
+    let prefix_without_colon = &variant_prefix[..variant_prefix.len() - 1];
+    let prefix_variants: HashSet<&str> = prefix_without_colon.split(':').collect();
+
+    let mut result = utility;
+
+    loop {
+        if let Some(colon_idx) = result.find(':') {
+            let first_variant = &result[..colon_idx];
+            if prefix_variants.contains(first_variant) {
+                result = &result[colon_idx + 1..];
+                continue;
+            }
+        }
+        break;
+    }
+
+    format!("{}{}", variant_prefix, result)
+}
 
 /// The main visitor that transforms className attributes
 pub struct TailwindExpandVisitor {
@@ -43,10 +82,10 @@ impl TailwindExpandVisitor {
         result.join(" ")
     }
 
-    /// Expand a single token (handles variants like lg:ButtonMd)
+    /// Expand a single token (handles variants like lg:ButtonMd, dark:hover:Button)
     fn expand_token(&self, token: &str) -> String {
-        // Check for variant prefix (e.g., lg:ButtonMd, hover:Button)
-        if let Some(colon_idx) = token.find(':') {
+        // Check for variant prefix using last colon (e.g., dark:hover:Button → prefix="dark:hover:", alias="Button")
+        if let Some(colon_idx) = token.rfind(':') {
             let prefix = &token[..colon_idx + 1];
             let mut rest = &token[colon_idx + 1..];
 
@@ -61,10 +100,11 @@ impl TailwindExpandVisitor {
                 return expanded
                     .split_whitespace()
                     .map(|u| {
+                        let prefixed = apply_variant_prefix(prefix, u);
                         if important {
-                            format!("{}!{}", prefix, u)
+                            insert_important(&prefixed)
                         } else {
-                            format!("{}{}", prefix, u)
+                            prefixed
                         }
                     })
                     .collect::<Vec<_>>()
@@ -78,7 +118,7 @@ impl TailwindExpandVisitor {
             if let Some(expanded) = self.aliases.get(rest) {
                 return expanded
                     .split_whitespace()
-                    .map(|u| format!("!{}", u))
+                    .map(|u| insert_important(u))
                     .collect::<Vec<_>>()
                     .join(" ");
             }
@@ -155,6 +195,19 @@ mod tests {
     }
 
     #[test]
+    fn test_important_with_variant_utilities() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("ButtonMain".to_string(), "bg-amber-500 hover:bg-amber-600".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        // !ButtonMain should produce hover:!bg-amber-600, not !hover:bg-amber-600
+        assert_eq!(
+            visitor.expand_token("!ButtonMain"),
+            "!bg-amber-500 hover:!bg-amber-600"
+        );
+    }
+
+    #[test]
     fn test_expand_class_name() {
         let mut aliases = AliasMap::new();
         aliases.insert("Button".to_string(), "px-4 py-2".to_string());
@@ -179,5 +232,70 @@ mod tests {
         let visitor = TailwindExpandVisitor::new(config);
         assert_eq!(visitor.expand_token("Button"), "px-4 py-2");
         assert_eq!(visitor.expand_token("lg:ButtonMd"), "lg:h-10");
+    }
+
+    #[test]
+    fn test_variant_deduplication_same_variant() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("ButtonMain".to_string(), "bg-amber-500 hover:bg-amber-600".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        // hover:ButtonMain should NOT produce hover:hover:bg-amber-600
+        assert_eq!(
+            visitor.expand_token("hover:ButtonMain"),
+            "hover:bg-amber-500 hover:bg-amber-600"
+        );
+    }
+
+    #[test]
+    fn test_variant_deduplication_dark() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("ButtonGitHub".to_string(), "text-slate-950 dark:text-white".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        // dark:ButtonGitHub should NOT produce dark:dark:text-white
+        assert_eq!(
+            visitor.expand_token("dark:ButtonGitHub"),
+            "dark:text-slate-950 dark:text-white"
+        );
+    }
+
+    #[test]
+    fn test_variant_deduplication_chained() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("ButtonMain".to_string(), "bg-amber-500 hover:bg-amber-600".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        // dark:hover:ButtonMain should NOT produce dark:hover:hover:bg-amber-600
+        assert_eq!(
+            visitor.expand_token("dark:hover:ButtonMain"),
+            "dark:hover:bg-amber-500 dark:hover:bg-amber-600"
+        );
+    }
+
+    #[test]
+    fn test_variant_stacking_different_variants() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("ButtonMain".to_string(), "bg-amber-500 hover:bg-amber-600".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        // dark:ButtonMain should produce dark:hover:bg-amber-600 (different variants stack)
+        assert_eq!(
+            visitor.expand_token("dark:ButtonMain"),
+            "dark:bg-amber-500 dark:hover:bg-amber-600"
+        );
+    }
+
+    #[test]
+    fn test_variant_with_important_modifier() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("ButtonMain".to_string(), "bg-amber-500 hover:bg-amber-600".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        // hover:!ButtonMain should insert ! after the prefix
+        assert_eq!(
+            visitor.expand_token("hover:!ButtonMain"),
+            "hover:!bg-amber-500 hover:!bg-amber-600"
+        );
     }
 }

@@ -46,6 +46,7 @@
   "devDependencies": {
     "@babel/core": "^7.24.0",
     "@babel/preset-react": "^7.24.0",
+    "@babel/types": "^7.24.0",
     "@types/babel__core": "^7.20.0",
     "@types/node": "^20.0.0",
     "tsup": "^8.0.0",

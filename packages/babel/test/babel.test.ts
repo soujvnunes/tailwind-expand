@@ -99,4 +99,42 @@ describe('babel plugin', () => {
     expect(output).toContain('text-xs');
     expect(output).toContain('h-10');
   });
+
+  describe('variant prefix deduplication', () => {
+    it('deduplicates same variant prefix (hover:hover: -> hover:)', () => {
+      // ButtonMain has "hover:bg-amber-600"
+      const input = `<div className="hover:ButtonMain" />`;
+      const output = transform(input);
+
+      expect(output).toContain('hover:bg-amber-500');
+      expect(output).toContain('hover:bg-amber-600');
+      expect(output).not.toContain('hover:hover:bg-amber-600');
+    });
+
+    it('deduplicates dark: prefix when utility already has dark:', () => {
+      // ButtonGitHub has "dark:text-white"
+      const input = `<div className="dark:ButtonGitHub" />`;
+      const output = transform(input);
+
+      expect(output).toContain('dark:text-white');
+      expect(output).not.toContain('dark:dark:text-white');
+    });
+
+    it('deduplicates with chained variants (dark:hover: + hover:)', () => {
+      // ButtonMain has "hover:bg-amber-600"
+      const input = `<div className="dark:hover:ButtonMain" />`;
+      const output = transform(input);
+
+      expect(output).toContain('dark:hover:bg-amber-600');
+      expect(output).not.toContain('dark:hover:hover:bg-amber-600');
+    });
+
+    it('stacks different variants correctly', () => {
+      // ButtonMain has "hover:bg-amber-600"
+      const input = `<div className="dark:ButtonMain" />`;
+      const output = transform(input);
+
+      expect(output).toContain('dark:hover:bg-amber-600');
+    });
+  });
 });
