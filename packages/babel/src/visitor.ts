@@ -44,7 +44,7 @@ function transformExpression(expr: t.Expression, aliases: AliasMap): void {
 
     case 'TemplateLiteral':
       // className={`Button ${x} ButtonMd`}
-      expr.quasis.forEach((quasi: t.TemplateElement) => {
+      expr.quasis.forEach((quasi) => {
         if (quasi.value.raw) {
           quasi.value.raw = expandClassString(quasi.value.raw, aliases);
           quasi.value.cooked = expandClassString(quasi.value.cooked || '', aliases);
@@ -54,7 +54,7 @@ function transformExpression(expr: t.Expression, aliases: AliasMap): void {
 
     case 'CallExpression':
       // className={cn("Button", condition && "ButtonMd")}
-      expr.arguments.forEach((arg: t.Expression | t.SpreadElement | t.ArgumentPlaceholder) => {
+      expr.arguments.forEach(arg => {
         if (arg.type === 'StringLiteral') {
           arg.value = expandClassString(arg.value, aliases);
         } else if (arg.type === 'LogicalExpression') {
