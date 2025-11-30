@@ -1,5 +1,21 @@
 # @tailwind-expand/babel
 
+## 0.4.1
+
+### Patch Changes
+
+- 9ebe35e: fix: deduplicate variant prefixes to prevent hover:hover:, dark:dark:, etc.
+
+  When applying a variant prefix (e.g., `hover:`) to an alias that already contains utilities with that same prefix, we now correctly deduplicate instead of producing invalid class names like `hover:hover:bg-primary/90`.
+
+  Example:
+
+  - Before: `hover:ButtonPrimary` → `hover:bg-primary hover:hover:bg-primary/90`
+  - After: `hover:ButtonPrimary` → `hover:bg-primary hover:bg-primary/90`
+
+- Updated dependencies [9ebe35e]
+  - @tailwind-expand/core@0.3.1
+
 ## 0.4.0
 
 ### Minor Changes
