@@ -78,16 +78,16 @@ pnpm add -D @tailwind-expand/vite @tailwind-expand/babel
 import { defineConfig } from 'vite'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { vite } from '@tailwind-expand/vite'
-import { babel } from '@tailwind-expand/babel'
+import tailwindExpandVite from '@tailwind-expand/vite'
+import tailwindExpandBabel from '@tailwind-expand/babel'
 
 export default defineConfig({
   plugins: [
-    vite(),           // Must come before tailwindcss
+    tailwindExpandVite(),  // Must come before tailwindcss
     tailwindcss(),
     react({
       babel: {
-        plugins: [babel({ cssPath: './src/globals.css' })],
+        plugins: [tailwindExpandBabel({ cssPath: './src/globals.css' })],
       },
     }),
   ],
@@ -102,11 +102,11 @@ pnpm add -D @tailwind-expand/postcss @tailwind-expand/swc
 
 ```ts
 // next.config.ts
-import { swc } from '@tailwind-expand/swc'
+import tailwindExpandSWC from '@tailwind-expand/swc'
 
 const nextConfig = {
   experimental: {
-    swcPlugins: [swc({ cssPath: './app/globals.css' })],
+    swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css' })],
   },
 }
 
@@ -115,12 +115,10 @@ export default nextConfig
 
 ```js
 // postcss.config.mjs
-import { postcss } from '@tailwind-expand/postcss'
-
 export default {
   plugins: {
+    '@tailwind-expand/postcss': {},
     '@tailwindcss/postcss': {},
-    ...postcss(),
   },
 }
 ```
@@ -146,10 +144,10 @@ module.exports = {
 
 ```js
 // babel.config.js
-const { babel } = require('@tailwind-expand/babel')
+import tailwindExpandBabel from '@tailwind-expand/babel'
 
 module.exports = {
-  plugins: [babel({ cssPath: './src/globals.css' })],
+  plugins: [tailwindExpandBabel({ cssPath: './src/globals.css' })],
 }
 ```
 
@@ -222,6 +220,72 @@ Aliases can reference other aliases:
   @apply TypographyCaption inline-flex items-center;
 }
 ```
+
+### Container Patterns
+
+Define entire page structures with deeply nested aliases. Perfect for organizing layout in your CSS:
+
+```css
+/* globals.css */
+@expand Home {
+  @apply min-h-screen bg-gray-50 p-8;
+
+  &Hero {
+    @apply mx-auto max-w-2xl space-y-8;
+
+    &Title {
+      @apply TypographyHeading text-gray-900;
+    }
+  }
+
+  &Section {
+    @apply space-y-4;
+
+    &Title {
+      @apply TypographyCaption text-gray-500;
+    }
+
+    &Actions {
+      @apply flex items-center gap-2 pt-4 border-t border-gray-200;
+
+      /* Deep composition: existing aliases + additional utilities */
+      &Submit {
+        @apply Button ButtonMd ButtonPrimary flex-1 shadow-md;
+      }
+
+      &Cancel {
+        @apply Button ButtonMd ButtonSecondary opacity-80;
+      }
+    }
+  }
+}
+```
+
+```jsx
+// page.tsx - Clean, semantic JSX
+export default function Home() {
+  return (
+    <div className="Home">
+      <div className="HomeHero">
+        <h1 className="HomeHeroTitle">Welcome</h1>
+      </div>
+      <section className="HomeSection">
+        <h2 className="HomeSectionTitle">Actions</h2>
+        <div className="HomeSectionActions">
+          <button className="HomeSectionActionsSubmit">Submit</button>
+          <button className="HomeSectionActionsCancel">Cancel</button>
+        </div>
+      </section>
+    </div>
+  );
+}
+```
+
+Benefits:
+- **Semantic JSX**: Clean class names that describe structure
+- **Centralized styling**: All layout definitions in one CSS file
+- **Deep composition**: Combine existing aliases with additional utilities
+- **Full DevTools visibility**: Actual utilities visible at runtime
 
 ## Rules
 
