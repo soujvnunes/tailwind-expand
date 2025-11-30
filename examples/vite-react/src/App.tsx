@@ -1,15 +1,17 @@
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="mx-auto max-w-2xl space-y-8">
-        <h1 className="TypographyHeading text-gray-900">
-          tailwind-expand Demo
-        </h1>
+    <div className="App">
+      <div className="AppHero">
+        <h1 className="AppHeroTitle">tailwind-expand Demo</h1>
+        <p className="AppHeroDescription">
+          Define reusable component styles with familiar @apply syntax, then use
+          them in JSX with full variant support.
+        </p>
 
         {/* Button Examples */}
-        <section className="space-y-4">
-          <h2 className="TypographyCaption text-gray-500">Buttons</h2>
-          <div className="flex flex-wrap gap-4">
+        <section className="AppSection">
+          <h2 className="AppSectionTitle">Buttons</h2>
+          <div className="AppSectionContent">
             <button className="Button ButtonSm ButtonPrimary">
               Small Primary
             </button>
@@ -20,27 +22,40 @@ function App() {
               Large Primary
             </button>
           </div>
-          <div className="flex flex-wrap gap-4">
+          <div className="AppSectionContent">
             <button className="Button ButtonMd ButtonSecondary">
               Secondary
             </button>
-            <button className="Button ButtonMd ButtonDanger">
-              Danger
-            </button>
+            <button className="Button ButtonMd ButtonDanger">Danger</button>
+          </div>
+        </section>
+
+        {/* Deep Composition - Aliases + Utilities */}
+        <section className="AppSection">
+          <h2 className="AppSectionTitle">Deep Composition</h2>
+          <p className="AppHeroDescription">
+            AppSectionActionsSubmit = Button + ButtonMd + ButtonPrimary + flex-1
+            + shadow-md
+          </p>
+          <div className="AppSectionActions">
+            <button className="AppSectionActionsSubmit">Submit</button>
+            <button className="AppSectionActionsCancel">Cancel</button>
           </div>
         </section>
 
         {/* Responsive Example */}
-        <section className="space-y-4">
-          <h2 className="TypographyCaption text-gray-500">Responsive Variants</h2>
-          <button className="Button ButtonSm lg:ButtonMd xl:ButtonLg ButtonPrimary">
-            Responsive Button (resize window)
-          </button>
+        <section className="AppSection">
+          <h2 className="AppSectionTitle">Responsive Variants</h2>
+          <div className="AppSectionContent">
+            <button className="Button ButtonSm lg:ButtonMd xl:ButtonLg ButtonPrimary">
+              Responsive Button (resize window)
+            </button>
+          </div>
         </section>
 
         {/* Card Example */}
-        <section className="space-y-4">
-          <h2 className="TypographyCaption text-gray-500">Card Component</h2>
+        <section className="AppSection">
+          <h2 className="AppSectionTitle">Card Component</h2>
           <div className="Card">
             <div className="CardHeader">
               <h3 className="CardTitle">Card Title</h3>
@@ -53,11 +68,13 @@ function App() {
         </section>
 
         {/* Important Modifier */}
-        <section className="space-y-4">
-          <h2 className="TypographyCaption text-gray-500">Important Modifier</h2>
-          <button className="Button ButtonMd ButtonPrimary !ButtonSecondary">
-            Overridden with !important
-          </button>
+        <section className="AppSection">
+          <h2 className="AppSectionTitle">Important Modifier</h2>
+          <div className="AppSectionContent">
+            <button className="Button ButtonMd ButtonPrimary !ButtonSecondary">
+              Overridden with !important
+            </button>
+          </div>
         </section>
       </div>
     </div>

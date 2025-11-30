@@ -1,10 +1,10 @@
 import type { NextConfig } from "next";
-import { swc } from "@tailwind-expand/swc";
+import tailwindExpandSWC from "@tailwind-expand/swc";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
   experimental: {
-    swcPlugins: [swc({ cssPath: "./app/globals.css" })],
+    swcPlugins: [tailwindExpandSWC({ cssPath: "./app/globals.css" })],
   },
 };
 
