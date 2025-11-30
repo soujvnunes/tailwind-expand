@@ -31,6 +31,16 @@ describe('collectVariantAliases', () => {
       ].sort());
     });
 
+    it('handles chained variant prefixes (dark:hover:)', () => {
+      const aliases = { ButtonPrimary: 'bg-primary hover:bg-primary/90' };
+      const result = new Set<string>();
+      collectVariantAliases('dark:hover:ButtonPrimary', aliases, result);
+      expect([...result].sort()).toEqual([
+        'dark:hover:bg-primary',
+        'dark:hover:bg-primary/90',
+      ].sort());
+    });
+
     // Pseudo-elements
     it('preserves pseudo-element variants (hover + before)', () => {
       const aliases = { Icon: 'before:w-0' };

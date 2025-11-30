@@ -266,4 +266,17 @@ mod tests {
             "dark:bg-amber-500 dark:hover:bg-amber-600"
         );
     }
+
+    #[test]
+    fn test_variant_with_important_modifier() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("ButtonMain".to_string(), "bg-amber-500 hover:bg-amber-600".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        // hover:!ButtonMain should insert ! after the prefix
+        assert_eq!(
+            visitor.expand_token("hover:!ButtonMain"),
+            "hover:!bg-amber-500 hover:!bg-amber-600"
+        );
+    }
 }
