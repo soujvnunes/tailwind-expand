@@ -3,6 +3,30 @@ import { join } from 'path';
 import type { AliasMap } from './types';
 
 /**
+ * Apply variant prefix to utility, deduplicating overlapping variants.
+ * e.g., applyVariantPrefix("hover", "hover:bg-primary") → "hover:bg-primary"
+ * e.g., applyVariantPrefix("dark", "hover:bg-primary") → "dark:hover:bg-primary"
+ */
+function applyVariantPrefix(variant: string, utility: string): string {
+  const prefixVariants = new Set([variant]);
+  let result = utility;
+
+  while (true) {
+    const colonIdx = result.indexOf(':');
+    if (colonIdx === -1) break;
+
+    const firstVariant = result.slice(0, colonIdx);
+    if (prefixVariants.has(firstVariant)) {
+      result = result.slice(colonIdx + 1);
+    } else {
+      break;
+    }
+  }
+
+  return `${variant}:${result}`;
+}
+
+/**
  * Collect variant-prefixed alias usage from source code
  * e.g., lg:ButtonMd → collect lg:h-10 lg:px-4
  */
@@ -31,7 +55,7 @@ export function collectVariantAliases(
     if (aliases[aliasName]) {
       const utilities = aliases[aliasName].split(/\s+/);
       for (const util of utilities) {
-        variantUtilities.add(`${variant}:${util}`);
+        variantUtilities.add(applyVariantPrefix(variant, util));
       }
     }
   }

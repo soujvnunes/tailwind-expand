@@ -255,7 +255,7 @@ Use Tailwind states with any alias. Each utility in the alias gets the state pre
 <button className="Button ButtonSm lg:ButtonMd hover:ButtonPrimary !ButtonMd" />
 
 // Output (after build)
-<button className="text-xs font-bold uppercase inline-flex items-center h-8 px-3 lg:h-10 lg:px-4 hover:bg-primary hover:text-white hover:hover:bg-primary/90 !h-10 !px-4" />
+<button className="text-xs font-bold uppercase inline-flex items-center h-8 px-3 lg:h-10 lg:px-4 hover:bg-primary hover:text-white hover:bg-primary/90 !h-10 !px-4" />
 ```
 
 ### Handling Utility Collisions

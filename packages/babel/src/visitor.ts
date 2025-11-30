@@ -96,6 +96,33 @@ function transformConditionalExpression(expr: t.ConditionalExpression, aliases: 
 }
 
 /**
+ * Apply variant prefix to utility, deduplicating overlapping variants.
+ * e.g., applyVariantPrefix("hover:", "hover:bg-primary") → "hover:bg-primary"
+ * e.g., applyVariantPrefix("dark:hover:", "hover:bg-primary") → "dark:hover:bg-primary"
+ */
+function applyVariantPrefix(variantPrefix: string, utility: string): string {
+  if (!variantPrefix) return utility;
+
+  // "dark:hover:" → {"dark", "hover"}
+  const prefixVariants = new Set(variantPrefix.slice(0, -1).split(':'));
+  let result = utility;
+
+  while (true) {
+    const colonIdx = result.indexOf(':');
+    if (colonIdx === -1) break;
+
+    const firstVariant = result.slice(0, colonIdx);
+    if (prefixVariants.has(firstVariant)) {
+      result = result.slice(colonIdx + 1);
+    } else {
+      break;
+    }
+  }
+
+  return variantPrefix + result;
+}
+
+/**
  * Core expansion logic for a class string
  * Handles: "Button lg:ButtonMd !ButtonMain"
  */
@@ -146,9 +173,9 @@ function expandToken(token: string, aliases: AliasMap): string {
   const utilities = aliases[aliasName].split(/\s+/);
 
   const expanded = utilities.map((util) => {
-    // Combine: !prefix + variantPrefix + utility
-    // If utility already has variants (e.g., "hover:bg-blue"), prepend our variant
-    return importantPrefix + variantPrefix + util;
+    // Apply variant prefix with deduplication, then add important prefix
+    const prefixedUtil = applyVariantPrefix(variantPrefix, util);
+    return importantPrefix + prefixedUtil;
   });
 
   return expanded.join(' ');
