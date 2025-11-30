@@ -1,30 +1,7 @@
 import { readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
 import type { AliasMap } from './types';
-
-/**
- * Apply variant prefix to utility, deduplicating overlapping variants.
- * e.g., applyVariantPrefix("hover", "hover:bg-primary") → "hover:bg-primary"
- * e.g., applyVariantPrefix("dark", "hover:bg-primary") → "dark:hover:bg-primary"
- */
-function applyVariantPrefix(variant: string, utility: string): string {
-  const prefixVariants = new Set([variant]);
-  let result = utility;
-
-  while (true) {
-    const colonIdx = result.indexOf(':');
-    if (colonIdx === -1) break;
-
-    const firstVariant = result.slice(0, colonIdx);
-    if (prefixVariants.has(firstVariant)) {
-      result = result.slice(colonIdx + 1);
-    } else {
-      break;
-    }
-  }
-
-  return `${variant}:${result}`;
-}
+import { applyVariantPrefix } from './utils';
 
 /**
  * Collect variant-prefixed alias usage from source code
@@ -41,9 +18,9 @@ export function collectVariantAliases(
 
   while ((match = variantAliasRegex.exec(code)) !== null) {
     const fullMatch = match[1];
-    // Extract variant and alias name
+    // Extract variant prefix (with colon) and alias name
     const colonIndex = fullMatch.indexOf(':');
-    const variant = fullMatch.slice(0, colonIndex);
+    const variantPrefix = fullMatch.slice(0, colonIndex + 1);
     let aliasName = fullMatch.slice(colonIndex + 1);
 
     // Handle important modifier
@@ -55,7 +32,7 @@ export function collectVariantAliases(
     if (aliases[aliasName]) {
       const utilities = aliases[aliasName].split(/\s+/);
       for (const util of utilities) {
-        variantUtilities.add(applyVariantPrefix(variant, util));
+        variantUtilities.add(applyVariantPrefix(variantPrefix, util));
       }
     }
   }
