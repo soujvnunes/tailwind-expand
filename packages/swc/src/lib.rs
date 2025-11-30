@@ -21,6 +21,17 @@ pub struct Config {
 /// Alias map: alias name -> expanded utilities
 type AliasMap = HashMap<String, String>;
 
+/// Insert important modifier after all variant prefixes.
+/// e.g., insert_important("bg-primary") → "!bg-primary"
+/// e.g., insert_important("hover:bg-primary") → "hover:!bg-primary"
+fn insert_important(utility: &str) -> String {
+    if let Some(last_colon) = utility.rfind(':') {
+        format!("{}!{}", &utility[..last_colon + 1], &utility[last_colon + 1..])
+    } else {
+        format!("!{}", utility)
+    }
+}
+
 /// Apply variant prefix to utility, deduplicating overlapping variants.
 /// e.g., apply_variant_prefix("hover:", "hover:bg-primary") → "hover:bg-primary"
 /// e.g., apply_variant_prefix("dark:hover:", "hover:bg-primary") → "dark:hover:bg-primary"
@@ -91,12 +102,7 @@ impl TailwindExpandVisitor {
                     .map(|u| {
                         let prefixed = apply_variant_prefix(prefix, u);
                         if important {
-                            // Insert ! after the prefix
-                            if let Some(last_colon) = prefixed.rfind(':') {
-                                format!("{}!{}", &prefixed[..last_colon + 1], &prefixed[last_colon + 1..])
-                            } else {
-                                format!("!{}", prefixed)
-                            }
+                            insert_important(&prefixed)
                         } else {
                             prefixed
                         }
@@ -112,7 +118,7 @@ impl TailwindExpandVisitor {
             if let Some(expanded) = self.aliases.get(rest) {
                 return expanded
                     .split_whitespace()
-                    .map(|u| format!("!{}", u))
+                    .map(|u| insert_important(u))
                     .collect::<Vec<_>>()
                     .join(" ");
             }
@@ -186,6 +192,19 @@ mod tests {
 
         let visitor = TailwindExpandVisitor { aliases };
         assert_eq!(visitor.expand_token("!Button"), "!px-4 !py-2");
+    }
+
+    #[test]
+    fn test_important_with_variant_utilities() {
+        let mut aliases = AliasMap::new();
+        aliases.insert("ButtonMain".to_string(), "bg-amber-500 hover:bg-amber-600".to_string());
+
+        let visitor = TailwindExpandVisitor { aliases };
+        // !ButtonMain should produce hover:!bg-amber-600, not !hover:bg-amber-600
+        assert_eq!(
+            visitor.expand_token("!ButtonMain"),
+            "!bg-amber-500 hover:!bg-amber-600"
+        );
     }
 
     #[test]
