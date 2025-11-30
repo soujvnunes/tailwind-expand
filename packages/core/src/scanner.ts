@@ -19,7 +19,7 @@ export function collectVariantAliases(
   while ((match = variantAliasRegex.exec(code)) !== null) {
     const fullMatch = match[1];
     // Extract variant prefix (with colon) and alias name
-    const colonIndex = fullMatch.indexOf(':');
+    const colonIndex = fullMatch.lastIndexOf(':');
     const variantPrefix = fullMatch.slice(0, colonIndex + 1);
     let aliasName = fullMatch.slice(colonIndex + 1);
 
