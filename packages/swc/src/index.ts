@@ -31,11 +31,11 @@ export interface SwcPluginOptions {
  * @example
  * ```js
  * // next.config.js
- * import { swc } from '@tailwind-expand/swc';
+ * import tailwindExpandSWC from '@tailwind-expand/swc';
  *
  * export default {
  *   experimental: {
- *     swcPlugins: [swc({ cssPath: './app/globals.css' })]
+ *     swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css' })]
  *   }
  * }
  * ```
@@ -43,7 +43,7 @@ export interface SwcPluginOptions {
  * @example
  * ```js
  * // rspack.config.js
- * import { swc } from '@tailwind-expand/swc';
+ * import tailwindExpandSWC from '@tailwind-expand/swc';
  *
  * module.exports = {
  *   module: {
@@ -54,7 +54,7 @@ export interface SwcPluginOptions {
  *         options: {
  *           jsc: {
  *             experimental: {
- *               plugins: [swc({ cssPath: './src/styles.css' })]
+ *               plugins: [tailwindExpandSWC({ cssPath: './src/styles.css' })]
  *             }
  *           }
  *         }
@@ -64,7 +64,7 @@ export interface SwcPluginOptions {
  * }
  * ```
  */
-export function swc(options: SwcPluginOptions): [string, { aliases: Record<string, string> }] {
+export default function tailwindExpandSWC(options: SwcPluginOptions): [string, { aliases: Record<string, string> }] {
   const { cssPath } = options;
 
   // Read CSS file and extract/expand aliases using core

@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { transformSync } from '@babel/core';
-import { babel } from '../src/index';
+import tailwindExpandBabel from '../src/index';
 import path from 'path';
 
 const fixture = (name: string) => path.join(__dirname, 'fixtures', name);
 
 const transform = (code: string) =>
   transformSync(code, {
-    plugins: [babel({ cssPath: fixture('globals.css') })],
+    plugins: [tailwindExpandBabel({ cssPath: fixture('globals.css') })],
     presets: ['@babel/preset-react'],
   })?.code;
 

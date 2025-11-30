@@ -1,39 +1,39 @@
 import { describe, it, expect } from 'vitest';
-import { vite } from '../src/index';
+import tailwindExpandVite from '../src/index';
 
 describe('vite plugin', () => {
   describe('plugin configuration', () => {
     it('exports a function', () => {
-      expect(typeof vite).toBe('function');
+      expect(typeof tailwindExpandVite).toBe('function');
     });
 
     it('returns a plugin with correct name', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       expect(plugin.name).toBe('tailwind-expand');
     });
 
     it('enforces pre order to run before Tailwind', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       expect(plugin.enforce).toBe('pre');
     });
   });
 
   describe('file filtering', () => {
     it('ignores non-CSS files', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       expect(plugin.transform('const x = 1;', 'file.ts')).toBeNull();
       expect(plugin.transform('const x = 1;', 'file.tsx')).toBeNull();
       expect(plugin.transform('const x = 1;', 'file.js')).toBeNull();
     });
 
     it('ignores CSS without @expand blocks', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       const css = '.button { color: red; }';
       expect(plugin.transform(css, 'styles.css')).toBeNull();
     });
 
     it('processes CSS with @expand blocks', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       const css = '@expand Button { @apply text-sm; }';
       const result = plugin.transform(css, 'globals.css');
       expect(result).not.toBeNull();
@@ -42,7 +42,7 @@ describe('vite plugin', () => {
 
   describe('@expand block transformation', () => {
     it('strips @expand blocks from output', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       plugin.configResolved({ root: '/fake' });
 
       const css = `
@@ -57,7 +57,7 @@ describe('vite plugin', () => {
     });
 
     it('strips nested @expand blocks', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       plugin.configResolved({ root: '/fake' });
 
       const css = `
@@ -80,7 +80,7 @@ describe('vite plugin', () => {
     });
 
     it('preserves non-expand CSS rules', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       plugin.configResolved({ root: '/fake' });
 
       const css = `
@@ -100,7 +100,7 @@ describe('vite plugin', () => {
 
   describe('@source inline injection', () => {
     it('injects @source inline with expanded utilities', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       plugin.configResolved({ root: '/fake' });
 
       const css = '@expand Button { @apply text-sm inline-flex items-center; }';
@@ -113,7 +113,7 @@ describe('vite plugin', () => {
     });
 
     it('expands alias references in @apply', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       plugin.configResolved({ root: '/fake' });
 
       const css = `
@@ -138,7 +138,7 @@ describe('vite plugin', () => {
 
   describe('multiple @expand blocks', () => {
     it('handles multiple @expand blocks', () => {
-      const plugin = vite();
+      const plugin = tailwindExpandVite();
       plugin.configResolved({ root: '/fake' });
 
       const css = `

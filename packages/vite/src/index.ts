@@ -9,12 +9,12 @@
  * Usage:
  * ```ts
  * // vite.config.ts
- * import { vite } from '@tailwind-expand/vite'
+ * import tailwindExpandVite from '@tailwind-expand/vite'
  * import tailwindcss from '@tailwindcss/vite'
  *
  * export default defineConfig({
  *   plugins: [
- *     vite(),
+ *     tailwindExpandVite(),
  *     tailwindcss(),
  *     // ...
  *   ],
@@ -29,7 +29,7 @@ import {
   type AliasMap,
 } from '@tailwind-expand/core';
 
-export function vite() {
+export default function tailwindExpandVite() {
   // Store collected variant-prefixed utilities from JSX files
   const variantUtilities = new Set<string>();
   // Store expanded aliases for resolving variants

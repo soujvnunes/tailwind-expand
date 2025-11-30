@@ -34,13 +34,15 @@ function babelPlugin(
  *
  * @example
  * // vite.config.ts
+ * import tailwindExpandBabel from '@tailwind-expand/babel'
+ *
  * react({
  *   babel: {
- *     plugins: [babel({ cssPath: './src/globals.css' })],
+ *     plugins: [tailwindExpandBabel({ cssPath: './src/globals.css' })],
  *   },
  * })
  */
-export function babel(
+export default function tailwindExpandBabel(
   options: ExpandPluginOptions
 ): [typeof babelPlugin, ExpandPluginOptions] {
   return [babelPlugin, options];
