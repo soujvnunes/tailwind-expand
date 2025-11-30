@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { dirname, join, resolve, relative } from 'path';
 import { fileURLToPath } from 'url';
-import { extractFromCSS, expand } from '@tailwind-expand/core';
+import { extractFromCSS, expand, type MergerFn } from '@tailwind-expand/core';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const absolutePath = resolve(join(__dirname, '..', 'tailwind_expand_swc.wasm'));
@@ -14,6 +14,11 @@ export interface SwcPluginOptions {
    * Path to the CSS file containing @expand definitions
    */
   cssPath: string;
+  /**
+   * Optional merge function to resolve conflicting utilities.
+   * Typically tailwind-merge's twMerge or a custom extendTailwindMerge.
+   */
+  mergerFn?: MergerFn;
 }
 
 /**
@@ -36,6 +41,19 @@ export interface SwcPluginOptions {
  * export default {
  *   experimental: {
  *     swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css' })]
+ *   }
+ * }
+ * ```
+ *
+ * @example
+ * ```js
+ * // next.config.js with tailwind-merge
+ * import tailwindExpandSWC from '@tailwind-expand/swc';
+ * import { twMerge } from 'tailwind-merge';
+ *
+ * export default {
+ *   experimental: {
+ *     swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css', mergerFn: twMerge })]
  *   }
  * }
  * ```
@@ -65,12 +83,15 @@ export interface SwcPluginOptions {
  * ```
  */
 export default function tailwindExpandSWC(options: SwcPluginOptions): [string, { aliases: Record<string, string> }] {
-  const { cssPath } = options;
+  const { cssPath, mergerFn } = options;
 
   // Read CSS file and extract/expand aliases using core
   const cssContent = readFileSync(cssPath, 'utf-8');
   const rawAliases = extractFromCSS(cssContent, cssPath);
-  const expandedAliases = expand(rawAliases);
+  const expandedAliases = expand(rawAliases, { mergerFn });
 
+  // WASM receives pre-merged aliases
   return [wasmPath, { aliases: expandedAliases }];
 }
+
+export type { MergerFn };

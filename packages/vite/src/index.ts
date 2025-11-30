@@ -20,6 +20,20 @@
  *   ],
  * })
  * ```
+ *
+ * @example
+ * // vite.config.ts with tailwind-merge
+ * import tailwindExpandVite from '@tailwind-expand/vite'
+ * import tailwindcss from '@tailwindcss/vite'
+ * import { twMerge } from 'tailwind-merge'
+ *
+ * export default defineConfig({
+ *   plugins: [
+ *     tailwindExpandVite({ mergerFn: twMerge }),
+ *     tailwindcss(),
+ *     // ...
+ *   ],
+ * })
  */
 
 import {
@@ -27,9 +41,18 @@ import {
   expand,
   scanSourceFiles,
   type AliasMap,
+  type MergerFn,
 } from '@tailwind-expand/core';
 
-export default function tailwindExpandVite() {
+export interface VitePluginOptions {
+  /**
+   * Optional merge function to resolve conflicting utilities.
+   * Typically tailwind-merge's twMerge or a custom extendTailwindMerge.
+   */
+  mergerFn?: MergerFn;
+}
+
+export default function tailwindExpandVite(options: VitePluginOptions = {}) {
   // Store collected variant-prefixed utilities from JSX files
   const variantUtilities = new Set<string>();
   // Store expanded aliases for resolving variants
@@ -55,7 +78,7 @@ export default function tailwindExpandVite() {
 
       // Extract and expand aliases from CSS using core
       const aliases = extractFromCSS(code);
-      expandedAliases = expand(aliases);
+      expandedAliases = expand(aliases, { mergerFn: options.mergerFn });
 
       // Scan source files for variant-prefixed alias usage
       if (rootDir) {
@@ -71,6 +94,8 @@ export default function tailwindExpandVite() {
     },
   };
 }
+
+export type { MergerFn };
 
 /**
  * Transform @expand blocks:

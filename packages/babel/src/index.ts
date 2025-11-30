@@ -1,8 +1,14 @@
 import type { PluginObj } from '@babel/core';
-import { extract, expand, type AliasMap, type ExpandPluginOptions } from '@tailwind-expand/core';
+import {
+  extract,
+  expand,
+  type AliasMap,
+  type ExpandPluginOptions,
+  type MergerFn,
+} from '@tailwind-expand/core';
 import { createBabelVisitor } from './visitor';
 
-// Cache for alias maps (keyed by CSS content hash)
+// Cache for alias maps (keyed by CSS content hash + mergerFn presence)
 const cache = new Map<string, AliasMap>();
 
 function babelPlugin(
@@ -16,14 +22,17 @@ function babelPlugin(
   // Extract and expand aliases
   const { aliases: rawAliases, hash } = extract(options.cssPath);
 
+  // Create cache key that includes mergerFn presence
+  const cacheKey = `${hash}:${options.mergerFn ? 'merged' : 'raw'}`;
+
   // Use cache if CSS hasn't changed
   let expandedAliases: AliasMap;
 
-  if (cache.has(hash)) {
-    expandedAliases = cache.get(hash)!;
+  if (cache.has(cacheKey)) {
+    expandedAliases = cache.get(cacheKey)!;
   } else {
-    expandedAliases = expand(rawAliases);
-    cache.set(hash, expandedAliases);
+    expandedAliases = expand(rawAliases, { mergerFn: options.mergerFn });
+    cache.set(cacheKey, expandedAliases);
   }
 
   return createBabelVisitor(expandedAliases);
@@ -41,6 +50,16 @@ function babelPlugin(
  *     plugins: [tailwindExpandBabel({ cssPath: './src/globals.css' })],
  *   },
  * })
+ *
+ * @example
+ * // With tailwind-merge for conflict resolution
+ * import { twMerge } from 'tailwind-merge'
+ *
+ * react({
+ *   babel: {
+ *     plugins: [tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge })],
+ *   },
+ * })
  */
 export default function tailwindExpandBabel(
   options: ExpandPluginOptions
@@ -49,4 +68,4 @@ export default function tailwindExpandBabel(
 }
 
 // Export types for consumers
-export type { ExpandPluginOptions, AliasMap };
+export type { ExpandPluginOptions, AliasMap, MergerFn };

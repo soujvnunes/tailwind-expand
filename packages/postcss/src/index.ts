@@ -1,5 +1,10 @@
 import type { PluginCreator, Root } from 'postcss';
-import { extractFromCSS, expand, scanSourceFiles } from '@tailwind-expand/core';
+import {
+  extractFromCSS,
+  expand,
+  scanSourceFiles,
+  type MergerFn,
+} from '@tailwind-expand/core';
 
 export interface PostcssPluginOptions {
   /**
@@ -7,6 +12,15 @@ export interface PostcssPluginOptions {
    * Defaults to process.cwd()
    */
   root?: string;
+  /**
+   * Optional merge function to resolve conflicting utilities.
+   * Typically tailwind-merge's twMerge or a custom extendTailwindMerge.
+   *
+   * @example
+   * import { twMerge } from 'tailwind-merge';
+   * { mergerFn: twMerge }
+   */
+  mergerFn?: MergerFn;
 }
 
 /**
@@ -30,6 +44,17 @@ export interface PostcssPluginOptions {
  *   },
  * };
  * ```
+ *
+ * @example
+ * // postcss.config.mjs with tailwind-merge
+ * import { twMerge } from 'tailwind-merge';
+ *
+ * export default {
+ *   plugins: {
+ *     "@tailwind-expand/postcss": { mergerFn: twMerge },
+ *     "@tailwindcss/postcss": {},
+ *   },
+ * };
  */
 const postcssPlugin: PluginCreator<PostcssPluginOptions> = (options = {}) => {
   const rootDir = options.root || process.cwd();
@@ -45,7 +70,7 @@ const postcssPlugin: PluginCreator<PostcssPluginOptions> = (options = {}) => {
 
       // Extract and expand aliases using core
       const aliases = extractFromCSS(css);
-      const expanded = expand(aliases);
+      const expanded = expand(aliases, { mergerFn: options.mergerFn });
 
       // Collect all base utilities
       const allUtilities = new Set<string>();
@@ -74,3 +99,5 @@ const postcssPlugin: PluginCreator<PostcssPluginOptions> = (options = {}) => {
 postcssPlugin.postcss = true;
 
 export default postcssPlugin;
+
+export type { MergerFn };

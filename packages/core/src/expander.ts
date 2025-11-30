@@ -1,6 +1,7 @@
-import type { AliasMap } from './types';
+import type { AliasMap, ExpandOptions } from './types';
 
-export function expand(rawAliases: AliasMap): AliasMap {
+export function expand(rawAliases: AliasMap, options?: ExpandOptions): AliasMap {
+  const { mergerFn } = options ?? {};
   const expanded: AliasMap = {};
   const resolving = new Set<string>(); // Circular dependency detection
 
@@ -40,9 +41,10 @@ export function expand(rawAliases: AliasMap): AliasMap {
     resolving.delete(aliasName);
 
     const result = resolvedTokens.join(' ');
-    expanded[aliasName] = result;
+    // Apply merge function if provided to resolve conflicting utilities
+    expanded[aliasName] = mergerFn ? mergerFn(result) : result;
 
-    return result;
+    return expanded[aliasName];
   }
 
   // Resolve all aliases
