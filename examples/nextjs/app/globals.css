@@ -87,9 +87,13 @@
     &Actions {
       @apply flex items-center gap-2 pt-4 border-t border-gray-200;
 
-      /* Deep composition: existing aliases + additional utilities */
+      /*
+       * Merge Example: Button includes text-xs (from TypographyCaption),
+       * but we override with text-sm here. With mergerFn: twMerge,
+       * only text-sm is kept (no redundant text-xs in output).
+       */
       &Submit {
-        @apply Button ButtonMd ButtonPrimary flex-1 shadow-md;
+        @apply Button ButtonMd ButtonPrimary flex-1 shadow-md text-sm;
       }
 
       &Cancel {

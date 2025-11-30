@@ -1,6 +1,8 @@
+import { twMerge } from "tailwind-merge";
+
 const config = {
   plugins: {
-    "@tailwind-expand/postcss": {},
+    "@tailwind-expand/postcss": { mergerFn: twMerge },
     "@tailwindcss/postcss": {},
   },
 };
