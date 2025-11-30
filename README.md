@@ -155,78 +155,42 @@ module.exports = {
 
 ### Define Aliases
 
-Create component aliases using the `@expand` at-rule with nested modifiers:
+Create component aliases using the `@expand` at-rule with nested modifiers. Aliases can reference other aliases for composition:
 
 ```css
 /* globals.css */
-@expand Button {
-  @apply text-sm font-medium inline-flex items-center;
+@import "tailwindcss";
 
-  &Sm {
-    @apply h-8 px-3;
-  }
-
-  &Md {
-    @apply h-10 px-4;
-  }
-
-  &Primary {
-    @apply bg-blue-500 text-white hover:bg-blue-600;
-  }
+@theme inline {
+  --color-primary: #3b82f6;
+  --color-danger: #ef4444;
 }
-```
 
-### Use in Components
-
-```jsx
-// Input
-<button className="Button ButtonMd ButtonPrimary">
-  Click me
-</button>
-
-// Output (after build)
-<button className="text-sm font-medium inline-flex items-center h-10 px-4 bg-blue-500 text-white hover:bg-blue-600">
-  Click me
-</button>
-```
-
-### Variant Support
-
-Use Tailwind variants with any alias:
-
-```jsx
-// Responsive
-<button className="Button ButtonSm lg:ButtonMd" />
-
-// States
-<button className="Button hover:ButtonPrimary" />
-
-// Important modifier
-<button className="!Button" />
-```
-
-### Alias Composition
-
-Aliases can reference other aliases:
-
-```css
 @expand Typography {
   &Caption {
     @apply text-xs font-bold uppercase;
   }
+  &Heading {
+    @apply text-2xl font-bold;
+  }
 }
 
 @expand Button {
+  /* Compose with other aliases */
   @apply TypographyCaption inline-flex items-center;
+
+  &Sm {
+    @apply h-8 px-3;
+  }
+  &Md {
+    @apply h-10 px-4;
+  }
+  &Primary {
+    @apply bg-primary text-white hover:bg-primary/90;
+  }
 }
-```
 
-### Container Patterns
-
-Define entire page structures with deeply nested aliases. Perfect for organizing layout in your CSS:
-
-```css
-/* globals.css */
+/* Container pattern: define entire page structures */
 @expand Home {
   @apply min-h-screen bg-gray-50 p-8;
 
@@ -241,51 +205,128 @@ Define entire page structures with deeply nested aliases. Perfect for organizing
   &Section {
     @apply space-y-4;
 
-    &Title {
-      @apply TypographyCaption text-gray-500;
-    }
-
     &Actions {
-      @apply flex items-center gap-2 pt-4 border-t border-gray-200;
+      @apply flex items-center gap-2;
 
-      /* Deep composition: existing aliases + additional utilities */
       &Submit {
-        @apply Button ButtonMd ButtonPrimary flex-1 shadow-md;
-      }
-
-      &Cancel {
-        @apply Button ButtonMd ButtonSecondary opacity-80;
+        @apply Button ButtonMd ButtonPrimary flex-1;
       }
     }
   }
 }
 ```
 
+### Use in Components
+
 ```jsx
-// page.tsx - Clean, semantic JSX
-export default function Home() {
-  return (
-    <div className="Home">
-      <div className="HomeHero">
-        <h1 className="HomeHeroTitle">Welcome</h1>
-      </div>
-      <section className="HomeSection">
-        <h2 className="HomeSectionTitle">Actions</h2>
-        <div className="HomeSectionActions">
-          <button className="HomeSectionActionsSubmit">Submit</button>
-          <button className="HomeSectionActionsCancel">Cancel</button>
-        </div>
-      </section>
+// Input
+<div className="Home">
+  <div className="HomeHero">
+    <h1 className="HomeHeroTitle">Welcome</h1>
+  </div>
+  <section className="HomeSection">
+    <div className="HomeSectionActions">
+      <button className="HomeSectionActionsSubmit">Submit</button>
+      <button className="Button ButtonMd ButtonPrimary">Click me</button>
     </div>
-  );
+  </section>
+</div>
+
+// Output (after build)
+<div className="min-h-screen bg-gray-50 p-8">
+  <div className="mx-auto max-w-2xl space-y-8">
+    <h1 className="text-2xl font-bold text-gray-900">Welcome</h1>
+  </div>
+  <section className="space-y-4">
+    <div className="flex items-center gap-2">
+      <button className="text-xs font-bold uppercase inline-flex items-center h-10 px-4 bg-primary text-white hover:bg-primary/90 flex-1">Submit</button>
+      <button className="text-xs font-bold uppercase inline-flex items-center h-10 px-4 bg-primary text-white hover:bg-primary/90">Click me</button>
+    </div>
+  </section>
+</div>
+```
+
+### State Support
+
+Use Tailwind states with any alias. Each utility in the alias gets the state prefix:
+
+```jsx
+// Input
+<button className="Button ButtonSm lg:ButtonMd hover:ButtonPrimary !ButtonMd" />
+
+// Output (after build)
+<button className="text-xs font-bold uppercase inline-flex items-center h-8 px-3 lg:h-10 lg:px-4 hover:bg-primary hover:text-white hover:hover:bg-primary/90 !h-10 !px-4" />
+```
+
+### Handling Utility Collisions
+
+When composing aliases, you may end up with conflicting utilities (e.g., `text-xs` from one alias and `text-sm` added later). Use `mergerFn` to resolve these conflicts with [tailwind-merge](https://github.com/dcastil/tailwind-merge):
+
+```bash
+pnpm add tailwind-merge
+```
+
+**Vite + React:**
+
+```ts
+// vite.config.ts
+import { twMerge } from 'tailwind-merge'
+
+export default defineConfig({
+  plugins: [
+    tailwindExpandVite({ mergerFn: twMerge }),
+    tailwindcss(),
+    react({
+      babel: {
+        plugins: [tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge })],
+      },
+    }),
+  ],
+})
+```
+
+**Next.js:**
+
+```ts
+// next.config.ts
+import { twMerge } from 'tailwind-merge'
+
+swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css', mergerFn: twMerge })]
+```
+
+```js
+// postcss.config.mjs
+import { twMerge } from 'tailwind-merge'
+
+export default {
+  plugins: {
+    '@tailwind-expand/postcss': { mergerFn: twMerge },
+    '@tailwindcss/postcss': {},
+  },
 }
 ```
 
-Benefits:
-- **Semantic JSX**: Clean class names that describe structure
-- **Centralized styling**: All layout definitions in one CSS file
-- **Deep composition**: Combine existing aliases with additional utilities
-- **Full DevTools visibility**: Actual utilities visible at runtime
+**Example:**
+
+```css
+@expand Button {
+  @apply TypographyCaption; /* includes text-xs */
+}
+
+@expand Form {
+  &Submit {
+    @apply Button text-sm; /* text-xs + text-sm conflict */
+  }
+}
+```
+
+```jsx
+// Without mergerFn
+<button className="text-xs font-bold uppercase inline-flex items-center text-sm" />
+
+// With mergerFn: twMerge
+<button className="font-bold uppercase inline-flex items-center text-sm" />
+```
 
 ## Rules
 
