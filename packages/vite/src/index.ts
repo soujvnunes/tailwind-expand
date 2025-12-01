@@ -124,7 +124,9 @@ function transformExpandBlocks(
   // Collect all base utilities
   const allUtilities = new Set<string>();
   for (const utils of Object.values(expanded) as string[]) {
-    utils.split(/\s+/).forEach((u: string) => allUtilities.add(u));
+    utils.split(/\s+/).forEach((u: string) => {
+      if (u) allUtilities.add(u);
+    });
   }
 
   // Add variant-prefixed utilities

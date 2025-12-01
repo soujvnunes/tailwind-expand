@@ -41,6 +41,7 @@ export function applyVariantPrefix(variantPrefix: string, utility: string): stri
  */
 export function generateCssClasses(aliases: Record<string, string>): string {
   return Object.entries(aliases)
+    .filter(([, utilities]) => utilities.trim())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([name, utilities]) => `.${name} { @apply ${utilities}; }`)
     .join('\n');

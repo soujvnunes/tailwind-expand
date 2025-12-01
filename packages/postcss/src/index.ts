@@ -83,7 +83,9 @@ const postcssPlugin: PluginCreator<PostcssPluginOptions> = (options = {}) => {
       // Collect all utilities (sorted for deterministic output)
       const allUtilities = new Set<string>();
       for (const utils of Object.values(expanded)) {
-        utils.split(/\s+/).forEach((u) => { if (u) allUtilities.add(u); });
+        utils.split(/\s+/).forEach((u) => {
+          if (u) allUtilities.add(u);
+        });
       }
 
       // Scan source files for variant-prefixed alias usage
