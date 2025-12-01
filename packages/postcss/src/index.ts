@@ -83,7 +83,7 @@ const postcssPlugin: PluginCreator<PostcssPluginOptions> = (options = {}) => {
       // Collect all utilities (sorted for deterministic output)
       const allUtilities = new Set<string>();
       for (const utils of Object.values(expanded)) {
-        utils.split(/\s+/).forEach((u) => allUtilities.add(u));
+        utils.split(/\s+/).forEach((u) => { if (u) allUtilities.add(u); });
       }
 
       // Scan source files for variant-prefixed alias usage
@@ -118,10 +118,12 @@ const postcssPlugin: PluginCreator<PostcssPluginOptions> = (options = {}) => {
         // className="Button" works via CSS (full HMR, no SWC needed)
         const cssClasses = generateCssClasses(expanded);
 
-        if (lastDirective) {
-          lastDirective.after(`\n/* tailwind-expand: dev classes */\n${cssClasses}`);
-        } else if (root.nodes?.[0]) {
-          root.nodes[0].before(`/* tailwind-expand: dev classes */\n${cssClasses}\n`);
+        if (cssClasses) { // Only insert if there are CSS classes to add
+          if (lastDirective) {
+            lastDirective.after(`\n/* tailwind-expand: dev classes */\n${cssClasses}`);
+          } else if (root.nodes?.[0]) {
+            root.nodes[0].before(`/* tailwind-expand: dev classes */\n${cssClasses}\n`);
+          }
         }
       } else {
         // PRODUCTION: Generate @source inline() for Tailwind

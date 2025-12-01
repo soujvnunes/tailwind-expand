@@ -137,7 +137,9 @@ function transformExpandBlocks(
     // Tailwind will process these and generate actual CSS
     // className="Button" works via CSS (full HMR, no Babel transform needed)
     const cssClasses = generateCssClasses(expanded);
-    result += `\n/* tailwind-expand: dev classes */\n${cssClasses}\n`;
+    if (cssClasses) { // Only append if there are CSS classes
+      result += `\n/* tailwind-expand: dev classes */\n${cssClasses}\n`;
+    }
   } else {
     // PRODUCTION: Generate @source inline() for Tailwind
     // Babel plugin will inline classes into JSX for atomic CSS benefits

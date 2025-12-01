@@ -178,42 +178,7 @@ importers:
         specifier: ^1.4.0
         version: 1.6.1(@types/node@20.19.25)(lightningcss@1.30.2)(terser@5.44.1)
 
-  packages/loader:
-    dependencies:
-      '@babel/core':
-        specifier: ^7.24.0
-        version: 7.28.5
-      '@tailwind-expand/core':
-        specifier: workspace:*
-        version: link:../core
-      webpack:
-        specifier: '>=5.0.0'
-        version: 5.103.0
-    devDependencies:
-      '@babel/preset-react':
-        specifier: ^7.24.0
-        version: 7.28.5(@babel/core@7.28.5)
-      '@babel/preset-typescript':
-        specifier: ^7.24.0
-        version: 7.28.5(@babel/core@7.28.5)
-      '@babel/types':
-        specifier: ^7.24.0
-        version: 7.28.5
-      '@types/babel__core':
-        specifier: ^7.20.0
-        version: 7.20.5
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.25
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.1(jiti@2.6.1)(postcss@8.5.6)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.4.0
-        version: 5.9.3
-      vitest:
-        specifier: ^1.4.0
-        version: 1.6.1(@types/node@20.19.25)(lightningcss@1.30.2)(terser@5.44.1)
+
 
   packages/postcss:
     dependencies:
