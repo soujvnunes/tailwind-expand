@@ -1,6 +1,5 @@
 import type { PluginCreator, Root, Result, AtRule } from 'postcss';
-import { resolve, join } from 'path';
-import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'fs';
+import { resolve } from 'path';
 import {
   extractFromRoot,
   expand,
@@ -8,10 +7,6 @@ import {
   generateCssClasses,
   type MergerFn,
 } from '@tailwind-expand/core';
-
-// Default cache directory for generated aliases file
-const CACHE_DIR = '.next/dev/cache/tailwind-expand';
-const ALIASES_FILENAME = 'aliases.json';
 
 export interface PostcssPluginOptions {
   /**
@@ -63,48 +58,8 @@ export interface PostcssPluginOptions {
  *   },
  * };
  */
-/**
- * Generates JSON content for the aliases file.
- */
-function generateAliasesFileContent(aliases: Record<string, string>): string {
-  // Sort entries for deterministic output
-  const sorted = Object.fromEntries(
-    Object.entries(aliases).sort(([a], [b]) => a.localeCompare(b))
-  );
-  return JSON.stringify(sorted, null, 2);
-}
-
-/**
- * Writes aliases to cache file if content has changed.
- * Returns true if file was written, false if unchanged.
- */
-function writeAliasesFile(
-  rootDir: string,
-  aliases: Record<string, string>
-): boolean {
-  const cacheDir = join(rootDir, CACHE_DIR);
-  const filePath = join(cacheDir, ALIASES_FILENAME);
-  const content = generateAliasesFileContent(aliases);
-
-  // Check if content has changed to avoid unnecessary writes
-  if (existsSync(filePath)) {
-    const existing = readFileSync(filePath, 'utf-8');
-    if (existing === content) {
-      return false;
-    }
-  }
-
-  // Ensure directory exists
-  mkdirSync(cacheDir, { recursive: true });
-
-  // Write the file
-  writeFileSync(filePath, content, 'utf-8');
-  return true;
-}
-
 const postcssPlugin: PluginCreator<PostcssPluginOptions> = (options = {}) => {
   const rootDir = options.root || process.cwd();
-  // Internal: write aliases file only in development for SWC plugin hot reload
   const isDev = process.env.NODE_ENV !== 'production';
 
   return {
@@ -162,9 +117,6 @@ const postcssPlugin: PluginCreator<PostcssPluginOptions> = (options = {}) => {
         // Tailwind will process these and generate actual CSS
         // className="Button" works via CSS (full HMR, no SWC needed)
         const cssClasses = generateCssClasses(expanded);
-
-        // Also write aliases file (for production build reference)
-        writeAliasesFile(rootDir, expanded);
 
         if (lastDirective) {
           lastDirective.after(`\n/* tailwind-expand: dev classes */\n${cssClasses}`);
