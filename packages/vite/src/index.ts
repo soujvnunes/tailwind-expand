@@ -4,42 +4,45 @@
  * This plugin transforms @expand blocks so Tailwind can process them:
  * 1. Extracts alias definitions from @expand blocks
  * 2. Resolves alias references in @apply (e.g., TypographyCaption → text-xs font-bold)
- * 3. Converts @expand blocks to standard CSS rules Tailwind can process
+ * 3. In development: generates CSS classes for HMR support
+ * 4. In production: generates @source inline() for Tailwind to process
+ *
+ * For production builds, pair with @tailwind-expand/babel to inline classes into JSX
+ * for atomic CSS benefits (smaller bundles, DevTools transparency).
  *
  * Usage:
  * ```ts
  * // vite.config.ts
  * import tailwindExpandVite from '@tailwind-expand/vite'
  * import tailwindcss from '@tailwindcss/vite'
- *
- * export default defineConfig({
- *   plugins: [
- *     tailwindExpandVite(),
- *     tailwindcss(),
- *     // ...
- *   ],
- * })
- * ```
- *
- * @example
- * // vite.config.ts with tailwind-merge
- * import tailwindExpandVite from '@tailwind-expand/vite'
- * import tailwindcss from '@tailwindcss/vite'
+ * import tailwindExpandBabel from '@tailwind-expand/babel'
  * import { twMerge } from 'tailwind-merge'
+ *
+ * const isProd = process.env.NODE_ENV === 'production'
  *
  * export default defineConfig({
  *   plugins: [
  *     tailwindExpandVite({ mergerFn: twMerge }),
  *     tailwindcss(),
- *     // ...
+ *     react({
+ *       babel: {
+ *         // Only expand in production for atomic CSS benefits
+ *         // In dev, CSS classes provide full HMR support
+ *         plugins: isProd
+ *           ? [tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge })]
+ *           : [],
+ *       },
+ *     }),
  *   ],
  * })
+ * ```
  */
 
 import {
   extractFromCSS,
   expand,
   scanSourceFiles,
+  generateCssClasses,
   type AliasMap,
   type MergerFn,
 } from '@tailwind-expand/core';
@@ -58,13 +61,15 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
   // Store expanded aliases for resolving variants
   let expandedAliases: AliasMap = {};
   let rootDir = '';
+  let isDev = true;
 
   return {
     name: 'tailwind-expand',
     enforce: 'pre' as const,
 
-    configResolved(config: { root: string }) {
+    configResolved(config: { root: string; command: string }) {
       rootDir = config.root;
+      isDev = config.command === 'serve';
     },
 
     transform(code: string, id: string) {
@@ -85,7 +90,12 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
         scanSourceFiles(rootDir, expandedAliases, variantUtilities);
       }
 
-      const transformed = transformExpandBlocks(code, expandedAliases, variantUtilities);
+      const transformed = transformExpandBlocks(
+        code,
+        expandedAliases,
+        variantUtilities,
+        isDev
+      );
 
       return {
         code: transformed,
@@ -99,13 +109,14 @@ export type { MergerFn };
 
 /**
  * Transform @expand blocks:
- * 1. First pass: extract all alias definitions
- * 2. Second pass: resolve alias references and convert to standard CSS
+ * - Development: generates CSS classes for HMR support
+ * - Production: generates @source inline() for Tailwind to process
  */
 function transformExpandBlocks(
   css: string,
   expanded: AliasMap,
-  variantUtilities: Set<string>
+  variantUtilities: Set<string>,
+  isDev: boolean
 ): string {
   // Remove @expand blocks
   let result = stripExpandBlocks(css);
@@ -121,10 +132,19 @@ function transformExpandBlocks(
     allUtilities.add(util);
   }
 
-  if (allUtilities.size > 0) {
-    // Use @source inline to tell Tailwind to generate these utilities
-    // This ensures the utility classes exist when Babel expands aliases in JSX
-    result += `\n/* tailwind-expand: utilities for Tailwind to generate */\n@source inline("${[...allUtilities].join(' ')}");\n`;
+  if (isDev) {
+    // DEVELOPMENT: Generate CSS classes with @apply for HMR support
+    // Tailwind will process these and generate actual CSS
+    // className="Button" works via CSS (full HMR, no Babel transform needed)
+    const cssClasses = generateCssClasses(expanded);
+    result += `\n/* tailwind-expand: dev classes */\n${cssClasses}\n`;
+  } else {
+    // PRODUCTION: Generate @source inline() for Tailwind
+    // Babel plugin will inline classes into JSX for atomic CSS benefits
+    if (allUtilities.size > 0) {
+      const sortedUtilities = [...allUtilities].sort();
+      result += `\n/* tailwind-expand */\n@source inline("${sortedUtilities.join(' ')}");\n`;
+    }
   }
 
   return result;
