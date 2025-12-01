@@ -41,13 +41,15 @@ export function collectVariantAliases(
 }
 
 /**
- * Recursively scan source files for variant-prefixed alias usage
+ * Recursively scan source files for variant-prefixed alias usage.
+ * Returns the list of scanned file paths for dependency registration.
  */
 export function scanSourceFiles(
   dir: string,
   aliases: AliasMap,
-  variantUtilities: Set<string>
-): void {
+  variantUtilities: Set<string>,
+  scannedFiles: string[] = []
+): string[] {
   try {
     const entries = readdirSync(dir);
 
@@ -60,8 +62,9 @@ export function scanSourceFiles(
       const stat = statSync(fullPath);
 
       if (stat.isDirectory()) {
-        scanSourceFiles(fullPath, aliases, variantUtilities);
+        scanSourceFiles(fullPath, aliases, variantUtilities, scannedFiles);
       } else if (/\.(jsx?|tsx?)$/.test(entry)) {
+        scannedFiles.push(fullPath);
         const content = readFileSync(fullPath, 'utf-8');
         collectVariantAliases(content, aliases, variantUtilities);
       }
@@ -69,4 +72,5 @@ export function scanSourceFiles(
   } catch {
     // Ignore errors
   }
+  return scannedFiles;
 }

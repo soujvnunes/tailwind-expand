@@ -30,3 +30,18 @@ export function applyVariantPrefix(variantPrefix: string, utility: string): stri
 
   return variantPrefix + result;
 }
+
+/**
+ * Generates CSS class rules from expanded aliases.
+ * Used in development mode for HMR support.
+ *
+ * @example
+ * Input: { Button: "text-xs font-bold", ButtonSm: "h-8 px-3" }
+ * Output: ".Button { @apply text-xs font-bold; }\n.ButtonSm { @apply h-8 px-3; }"
+ */
+export function generateCssClasses(aliases: Record<string, string>): string {
+  return Object.entries(aliases)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([name, utilities]) => `.${name} { @apply ${utilities}; }`)
+    .join('\n');
+}
