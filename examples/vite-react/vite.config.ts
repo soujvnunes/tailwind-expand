@@ -5,6 +5,8 @@ import tailwindExpandVite from '@tailwind-expand/vite'
 import tailwindExpandBabel from '@tailwind-expand/babel'
 import { twMerge } from 'tailwind-merge'
 
+const isProd = process.env.NODE_ENV === 'production'
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -13,9 +15,11 @@ export default defineConfig({
     tailwindcss(),
     react({
       babel: {
-        plugins: [
-          tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge }),
-        ],
+        // Production: inline utilities for atomic CSS
+        // Development: semantic .Button classes for debugging
+        plugins: isProd
+          ? [tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge })]
+          : [],
       },
     }),
   ],
