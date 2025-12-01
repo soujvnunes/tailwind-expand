@@ -120,7 +120,7 @@ const postcssPlugin: PluginCreator<PostcssPluginOptions> = (options = {}) => {
         // className="Button" works via CSS (full HMR, no SWC needed)
         const cssClasses = generateCssClasses(expanded);
 
-        if (cssClasses) { // Only insert if there are CSS classes to add
+        if (cssClasses.length > 0) { // Only insert if there are CSS classes to add
           if (lastDirective) {
             lastDirective.after(`\n/* tailwind-expand: dev classes */\n${cssClasses}`);
           } else if (root.nodes?.[0]) {

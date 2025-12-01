@@ -8,7 +8,8 @@
  * 4. In production: generates @source inline() for Tailwind to process
  *
  * For production builds, pair with @tailwind-expand/babel to inline classes into JSX
- * for atomic CSS benefits (smaller bundles, DevTools transparency).
+ * for atomic CSS benefits (smaller bundles, deduplicated classes).
+ * In development, semantic class names are generated for easier debugging in DevTools.
  *
  * Usage:
  * ```ts
@@ -139,7 +140,7 @@ function transformExpandBlocks(
     // Tailwind will process these and generate actual CSS
     // className="Button" works via CSS (full HMR, no Babel transform needed)
     const cssClasses = generateCssClasses(expanded);
-    if (cssClasses) { // Only append if there are CSS classes
+    if (cssClasses.length > 0) { // Only append if there are CSS classes
       result += `\n/* tailwind-expand: dev classes */\n${cssClasses}\n`;
     }
   } else {
