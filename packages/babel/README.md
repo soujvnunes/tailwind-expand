@@ -1,11 +1,13 @@
 # @tailwind-expand/babel
 
-Babel plugin for tailwind-expand. Transforms JSX className attributes to expand aliases into utility classes.
+Babel plugin for tailwind-expand. Inlines className aliases into utility classes.
+
+**Use in production only** for atomic CSS benefits (smaller bundles). In development, the Vite/PostCSS plugin generates semantic CSS classes (`.Button`, `.HomeHeroTitle`) for easier debugging.
 
 ## Installation
 
 ```bash
-pnpm add -D @tailwind-expand/babel
+pnpm add -D @tailwind-expand/babel @tailwind-expand/vite
 ```
 
 ## Usage
@@ -16,13 +18,21 @@ pnpm add -D @tailwind-expand/babel
 // vite.config.ts
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { babel } from '@tailwind-expand/babel'
+import tailwindExpandVite from '@tailwind-expand/vite'
+import tailwindExpandBabel from '@tailwind-expand/babel'
+
+const isProd = process.env.NODE_ENV === 'production'
 
 export default defineConfig({
   plugins: [
+    tailwindExpandVite(),
     react({
       babel: {
-        plugins: [babel({ cssPath: './src/globals.css' })],
+        // Production: inline utilities for atomic CSS
+        // Development: semantic .Button classes for debugging
+        plugins: isProd
+          ? [tailwindExpandBabel({ cssPath: './src/globals.css' })]
+          : [],
       },
     }),
   ],
@@ -33,10 +43,14 @@ export default defineConfig({
 
 ```js
 // babel.config.js
-const { babel } = require('@tailwind-expand/babel')
+import tailwindExpandBabel from '@tailwind-expand/babel'
+
+const isProd = process.env.NODE_ENV === 'production'
 
 module.exports = {
-  plugins: [babel({ cssPath: './src/globals.css' })],
+  plugins: isProd
+    ? [tailwindExpandBabel({ cssPath: './src/globals.css' })]
+    : [],
 }
 ```
 

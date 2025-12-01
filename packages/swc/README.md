@@ -1,6 +1,8 @@
 # @tailwind-expand/swc
 
-SWC plugin for tailwind-expand. Enables className expansion in Next.js with Turbopack.
+SWC plugin for tailwind-expand. Inlines className aliases into utility classes in Next.js with Turbopack.
+
+**Use in production only** for atomic CSS benefits (smaller bundles). In development, PostCSS generates semantic CSS classes (`.Button`, `.HomeHeroTitle`) for easier debugging.
 
 ## Installation
 
@@ -12,11 +14,17 @@ pnpm add -D @tailwind-expand/swc @tailwind-expand/postcss
 
 ```ts
 // next.config.ts
-import { swc } from '@tailwind-expand/swc'
+import tailwindExpandSWC from '@tailwind-expand/swc'
+
+const isProd = process.env.NODE_ENV === 'production'
 
 const nextConfig = {
   experimental: {
-    swcPlugins: [swc({ cssPath: './app/globals.css' })],
+    // Production: inline utilities for atomic CSS
+    // Development: semantic .Button classes for debugging
+    swcPlugins: isProd
+      ? [tailwindExpandSWC({ cssPath: './app/globals.css' })]
+      : [],
   },
 }
 
@@ -25,12 +33,10 @@ export default nextConfig
 
 ```js
 // postcss.config.mjs
-import { postcss } from '@tailwind-expand/postcss'
-
 export default {
   plugins: {
+    '@tailwind-expand/postcss': {},
     '@tailwindcss/postcss': {},
-    ...postcss(),
   },
 }
 ```

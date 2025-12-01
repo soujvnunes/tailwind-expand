@@ -54,7 +54,8 @@ This approach has limitations:
 
 ### Benefits
 
-- **Full transparency**: DevTools shows actual utility classes
+- **Atomic CSS in production**: Inlined utilities = smaller bundles, deduplicated classes
+- **Semantic classes in development**: `.Button`, `.HomeHeroTitle` in DevTools for easy debugging
 - **Zero runtime**: All expansion happens at build time
 - **Variant support**: Use `lg:`, `hover:`, `!` prefixes with any alias
 - **Familiar syntax**: Define aliases using `@apply` you already know
@@ -75,13 +76,19 @@ import react from '@vitejs/plugin-react'
 import tailwindExpandVite from '@tailwind-expand/vite'
 import tailwindExpandBabel from '@tailwind-expand/babel'
 
+const isProd = process.env.NODE_ENV === 'production'
+
 export default defineConfig({
   plugins: [
     tailwindExpandVite(),  // Must come before tailwindcss
     tailwindcss(),
     react({
       babel: {
-        plugins: [tailwindExpandBabel({ cssPath: './src/globals.css' })],
+        // Production: inline utilities for atomic CSS
+        // Development: semantic .Button classes for debugging
+        plugins: isProd
+          ? [tailwindExpandBabel({ cssPath: './src/globals.css' })]
+          : [],
       },
     }),
   ],
@@ -98,9 +105,15 @@ pnpm add -D @tailwind-expand/postcss @tailwind-expand/swc
 // next.config.ts
 import tailwindExpandSWC from '@tailwind-expand/swc'
 
+const isProd = process.env.NODE_ENV === 'production'
+
 const nextConfig = {
   experimental: {
-    swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css' })],
+    // Production: inline utilities for atomic CSS
+    // Development: semantic .Button classes for debugging
+    swcPlugins: isProd
+      ? [tailwindExpandSWC({ cssPath: './app/globals.css' })]
+      : [],
   },
 }
 
@@ -140,8 +153,14 @@ module.exports = {
 // babel.config.js
 import tailwindExpandBabel from '@tailwind-expand/babel'
 
+const isProd = process.env.NODE_ENV === 'production'
+
 module.exports = {
-  plugins: [tailwindExpandBabel({ cssPath: './src/globals.css' })],
+  // Production: inline utilities for atomic CSS
+  // Development: semantic .Button classes for debugging
+  plugins: isProd
+    ? [tailwindExpandBabel({ cssPath: './src/globals.css' })]
+    : [],
 }
 ```
 
@@ -266,13 +285,17 @@ pnpm add tailwind-merge
 // vite.config.ts
 import { twMerge } from 'tailwind-merge'
 
+const isProd = process.env.NODE_ENV === 'production'
+
 export default defineConfig({
   plugins: [
     tailwindExpandVite({ mergerFn: twMerge }),
     tailwindcss(),
     react({
       babel: {
-        plugins: [tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge })],
+        plugins: isProd
+          ? [tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge })]
+          : [],
       },
     }),
   ],
@@ -285,7 +308,11 @@ export default defineConfig({
 // next.config.ts
 import { twMerge } from 'tailwind-merge'
 
-swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css', mergerFn: twMerge })]
+const isProd = process.env.NODE_ENV === 'production'
+
+swcPlugins: isProd
+  ? [tailwindExpandSWC({ cssPath: './app/globals.css', mergerFn: twMerge })]
+  : []
 ```
 
 ```js
