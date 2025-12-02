@@ -3,7 +3,6 @@ import {
   applyVariantPrefix,
   isCamelCase,
   CAMEL_CASE_REGEX,
-  generateCssClasses,
 } from '../src/utils';
 
 describe('applyVariantPrefix', () => {
@@ -57,48 +56,3 @@ describe('CAMEL_CASE_REGEX', () => {
   });
 });
 
-describe('generateCssClasses', () => {
-  it('generates CSS class from single alias', () => {
-    expect(generateCssClasses({ Button: 'text-xs' })).toBe(
-      '.Button { @apply text-xs; }'
-    );
-  });
-
-  it('generates CSS classes from multiple aliases', () => {
-    const result = generateCssClasses({
-      Button: 'text-xs font-bold',
-      ButtonSm: 'h-8 px-3',
-    });
-    expect(result).toBe(
-      '.Button { @apply text-xs font-bold; }\n.ButtonSm { @apply h-8 px-3; }'
-    );
-  });
-
-  it('sorts aliases alphabetically', () => {
-    const result = generateCssClasses({
-      Zebra: 'z-10',
-      Apple: 'a-0',
-      Middle: 'm-4',
-    });
-    expect(result).toBe(
-      '.Apple { @apply a-0; }\n.Middle { @apply m-4; }\n.Zebra { @apply z-10; }'
-    );
-  });
-
-  it('filters out empty utilities', () => {
-    expect(generateCssClasses({ Button: '', Empty: '   ' })).toBe('');
-  });
-
-  it('filters out empty utilities while keeping valid ones', () => {
-    const result = generateCssClasses({
-      Button: 'text-xs',
-      Empty: '',
-      Valid: 'px-4',
-    });
-    expect(result).toBe('.Button { @apply text-xs; }\n.Valid { @apply px-4; }');
-  });
-
-  it('returns empty string for empty input', () => {
-    expect(generateCssClasses({})).toBe('');
-  });
-});

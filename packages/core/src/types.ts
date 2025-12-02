@@ -22,6 +22,12 @@ export interface ExpandPluginOptions {
   cssPath: string;
   /** Optional merge function to resolve conflicting utilities */
   mergerFn?: MergerFn;
+  /**
+   * Enable debug mode to add data-expand attribute with alias names.
+   * Useful for debugging in DevTools without polluting className.
+   * @default false
+   */
+  debug?: boolean;
 }
 
 export interface ExtractorResult {
