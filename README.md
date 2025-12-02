@@ -48,9 +48,11 @@ This approach has limitations:
 // Your component
 <button className="Button ButtonMd lg:Button" />
 
-// After build
-<button className="text-sm inline-flex items-center h-10 px-4 lg:text-sm lg:inline-flex lg:items-center" />
+// After build (debug: true)
+<button data-expand="Button ButtonMd lg:Button" className="text-sm inline-flex items-center h-10 px-4 lg:text-sm lg:inline-flex lg:items-center" />
 ```
+
+> With `debug: false` (default), `data-expand` is omitted.
 
 ### Benefits
 
@@ -76,19 +78,16 @@ import react from '@vitejs/plugin-react'
 import tailwindExpandVite from '@tailwind-expand/vite'
 import tailwindExpandBabel from '@tailwind-expand/babel'
 
-const isProd = process.env.NODE_ENV === 'production'
-
 export default defineConfig({
   plugins: [
     tailwindExpandVite(),  // Must come before tailwindcss
     tailwindcss(),
     react({
       babel: {
-        // Production: inline utilities for atomic CSS
-        // Development: semantic .Button classes for debugging
-        plugins: isProd
-          ? [tailwindExpandBabel({ cssPath: './src/globals.css' })]
-          : [],
+        plugins: [tailwindExpandBabel({
+          cssPath: './src/globals.css',
+          debug: process.env.NODE_ENV !== 'production',
+        })],
       },
     }),
   ],
@@ -105,15 +104,9 @@ pnpm add -D @tailwind-expand/postcss @tailwind-expand/swc
 // next.config.ts
 import tailwindExpandSWC from '@tailwind-expand/swc'
 
-const isProd = process.env.NODE_ENV === 'production'
-
 const nextConfig = {
   experimental: {
-    // Production: inline utilities for atomic CSS
-    // Development: semantic .Button classes for debugging
-    swcPlugins: isProd
-      ? [tailwindExpandSWC({ cssPath: './app/globals.css' })]
-      : [],
+    swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css' })],
   },
 }
 
@@ -153,14 +146,8 @@ module.exports = {
 // babel.config.js
 import tailwindExpandBabel from '@tailwind-expand/babel'
 
-const isProd = process.env.NODE_ENV === 'production'
-
 module.exports = {
-  // Production: inline utilities for atomic CSS
-  // Development: semantic .Button classes for debugging
-  plugins: isProd
-    ? [tailwindExpandBabel({ cssPath: './src/globals.css' })]
-    : [],
+  plugins: [tailwindExpandBabel({ cssPath: './src/globals.css' })],
 }
 ```
 
@@ -267,8 +254,8 @@ Use Tailwind states with any alias. Each utility in the alias gets the state pre
 // Input
 <button className="Button ButtonSm lg:ButtonMd hover:ButtonPrimary !ButtonMd" />
 
-// Output (after build)
-<button className="text-xs font-bold uppercase inline-flex items-center h-8 px-3 lg:h-10 lg:px-4 hover:bg-primary hover:text-white hover:bg-primary/90 !h-10 !px-4" />
+// Output (debug: true)
+<button data-expand="Button ButtonSm lg:ButtonMd hover:ButtonPrimary !ButtonMd" className="text-xs font-bold uppercase inline-flex items-center h-8 px-3 lg:h-10 lg:px-4 hover:bg-primary hover:text-white hover:bg-primary/90 !h-10 !px-4" />
 ```
 
 ### Handling Utility Collisions
@@ -285,17 +272,13 @@ pnpm add tailwind-merge
 // vite.config.ts
 import { twMerge } from 'tailwind-merge'
 
-const isProd = process.env.NODE_ENV === 'production'
-
 export default defineConfig({
   plugins: [
     tailwindExpandVite({ mergerFn: twMerge }),
     tailwindcss(),
     react({
       babel: {
-        plugins: isProd
-          ? [tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge })]
-          : [],
+        plugins: [tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge })],
       },
     }),
   ],
@@ -308,11 +291,7 @@ export default defineConfig({
 // next.config.ts
 import { twMerge } from 'tailwind-merge'
 
-const isProd = process.env.NODE_ENV === 'production'
-
-swcPlugins: isProd
-  ? [tailwindExpandSWC({ cssPath: './app/globals.css', mergerFn: twMerge })]
-  : []
+swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css', mergerFn: twMerge })]
 ```
 
 ```js
@@ -348,6 +327,16 @@ export default {
 // With mergerFn: twMerge
 <button className="font-bold uppercase inline-flex items-center text-sm" />
 ```
+
+## Plugin Options
+
+All plugins accept these options:
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `cssPath` | `string` | — | Path to CSS file containing `@expand` definitions |
+| `mergerFn` | `(classes: string) => string` | — | Function to resolve conflicting utilities (e.g., `twMerge`) |
+| `debug` | `boolean` | `false` | Add `data-expand` attribute with expanded alias names |
 
 ## Rules
 

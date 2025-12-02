@@ -1,45 +1,25 @@
 ---
 "@tailwind-expand/core": minor
-"@tailwind-expand/postcss": minor
-"@tailwind-expand/vite": minor
 "@tailwind-expand/swc": minor
 "@tailwind-expand/babel": minor
 ---
 
-Add dev/prod mode for better debugging experience
+Add `debug` option to show expanded aliases in DevTools
 
-**Development mode**: CSS plugins (PostCSS/Vite) generate semantic CSS classes (`.Button`, `.HomeHeroTitle`) that appear in DevTools, making debugging easier with full HMR support.
+Enable `debug: true` to add a `data-expand` attribute showing which aliases were expanded:
 
-**Production mode**: SWC/Babel plugins inline aliases into atomic utility classes for smaller bundles and deduplicated CSS.
+```jsx
+// With debug: true
+<button data-expand="Button ButtonMd lg:Button" className="text-xs font-bold h-10 px-4 lg:text-xs lg:font-bold" />
 
-### Usage
-
-Configure SWC/Babel to run only in production:
-
-```ts
-// next.config.ts
-const isProd = process.env.NODE_ENV === 'production'
-
-swcPlugins: isProd
-  ? [tailwindExpandSWC({ cssPath: './app/globals.css' })]
-  : []
+// With debug: false (default)
+<button className="text-xs font-bold h-10 px-4 lg:text-xs lg:font-bold" />
 ```
 
-```ts
-// vite.config.ts
-const isProd = process.env.NODE_ENV === 'production'
-
-react({
-  babel: {
-    plugins: isProd
-      ? [tailwindExpandBabel({ cssPath: './src/globals.css' })]
-      : [],
-  },
-})
-```
+This is SSR-friendly and keeps className clean while providing debugging visibility.
 
 ### Changes
 
-- **core**: Add `generateCssClasses()` utility for dev mode
-- **postcss/vite**: Generate CSS classes in dev, `@source inline()` in prod
-- **swc/babel**: Use only in production for atomic CSS benefits
+- **core**: Add `debug?: boolean` to `ExpandPluginOptions` type
+- **babel**: Add `data-expand` attribute when `debug: true`
+- **swc**: Add `data-expand` attribute when `debug: true`
