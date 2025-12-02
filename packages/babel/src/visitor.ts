@@ -38,7 +38,7 @@ export function createBabelVisitor(aliases: AliasMap, debug: boolean = false): P
             },
             value: {
               type: 'StringLiteral',
-              value: [...expandedAliases].join(' '),
+              value: [...expandedAliases].sort().join(' '),
             },
           };
           path.node.attributes.push(dataExpandAttr);

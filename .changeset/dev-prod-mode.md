@@ -2,6 +2,8 @@
 "@tailwind-expand/core": minor
 "@tailwind-expand/swc": minor
 "@tailwind-expand/babel": minor
+"@tailwind-expand/vite": patch
+"@tailwind-expand/postcss": patch
 ---
 
 Add `debug` option to show expanded aliases in DevTools

@@ -38,6 +38,27 @@ const wasmPath = relative(process.cwd(), absolutePath);
  *   }
  * }
  * ```
+ *
+ * @example
+ * ```js
+ * // next.config.js - With debug mode in development
+ * import tailwindExpandSWC from '@tailwind-expand/swc';
+ * import { twMerge } from 'tailwind-merge';
+ *
+ * const isProd = process.env.NODE_ENV === 'production';
+ *
+ * export default {
+ *   experimental: {
+ *     swcPlugins: [
+ *       tailwindExpandSWC({
+ *         cssPath: './app/globals.css',
+ *         mergerFn: twMerge,
+ *         debug: !isProd // Show data-expand in development
+ *       })
+ *     ]
+ *   }
+ * }
+ * ```
  */
 export default function tailwindExpandSWC(
   options: ExpandPluginOptions
