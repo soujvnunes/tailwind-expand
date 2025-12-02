@@ -30,3 +30,4 @@ export function applyVariantPrefix(variantPrefix: string, utility: string): stri
 
   return variantPrefix + result;
 }
+

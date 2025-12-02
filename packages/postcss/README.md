@@ -1,17 +1,22 @@
 # @tailwind-expand/postcss
 
-PostCSS plugin for tailwind-expand. Strips `@expand` blocks from CSS output and injects utilities for Tailwind.
+PostCSS plugin for tailwind-expand. Processes `@expand` blocks for Tailwind.
+
+- **Development**: Generates semantic CSS classes (`.Button`, `.HomeHeroTitle`) for debugging
+- **Production**: Generates `@source inline()` for Tailwind to process utilities
 
 ## Installation
 
-```bash
-pnpm add -D @tailwind-expand/postcss @tailwind-expand/babel
-```
-
-Or for Next.js:
+For Next.js:
 
 ```bash
 pnpm add -D @tailwind-expand/postcss @tailwind-expand/swc
+```
+
+For other frameworks:
+
+```bash
+pnpm add -D @tailwind-expand/postcss @tailwind-expand/babel
 ```
 
 ## Usage
@@ -20,12 +25,10 @@ pnpm add -D @tailwind-expand/postcss @tailwind-expand/swc
 
 ```js
 // postcss.config.mjs
-import { postcss } from '@tailwind-expand/postcss'
-
 export default {
   plugins: {
+    '@tailwind-expand/postcss': {},
     '@tailwindcss/postcss': {},
-    ...postcss(),
   },
 }
 ```
@@ -45,17 +48,20 @@ module.exports = {
 
 ## What It Does
 
-1. **Strips `@expand` blocks** from the final CSS output
+1. **Extracts aliases** from `@expand` blocks
 2. **Scans source files** for variant-prefixed aliases (e.g., `lg:Button`)
-3. **Injects `@source inline()`** directive for Tailwind CSS v4
+3. **Development**: Generates CSS classes (`.Button { @apply ... }`) for debugging
+4. **Production**: Injects `@source inline()` for Tailwind to generate utilities
 
 ## Options
 
 ```ts
-postcss({
+{
   // Directory to scan for source files (defaults to process.cwd())
-  rootDir: './src',
-})
+  root: './src',
+  // Optional merge function for conflicting utilities
+  mergerFn: twMerge,
+}
 ```
 
 ## License

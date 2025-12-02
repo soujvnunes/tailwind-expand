@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { applyVariantPrefix, isCamelCase, CAMEL_CASE_REGEX } from '../src/utils';
+import {
+  applyVariantPrefix,
+  isCamelCase,
+  CAMEL_CASE_REGEX,
+} from '../src/utils';
 
 describe('applyVariantPrefix', () => {
   it('returns utility unchanged when prefix is empty', () => {
@@ -51,3 +55,4 @@ describe('CAMEL_CASE_REGEX', () => {
     expect(CAMEL_CASE_REGEX.test('button')).toBe(false);
   });
 });
+

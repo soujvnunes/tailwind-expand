@@ -4,36 +4,32 @@
  * This plugin transforms @expand blocks so Tailwind can process them:
  * 1. Extracts alias definitions from @expand blocks
  * 2. Resolves alias references in @apply (e.g., TypographyCaption → text-xs font-bold)
- * 3. Converts @expand blocks to standard CSS rules Tailwind can process
+ * 3. Generates @source inline() for Tailwind to include all utilities
+ *
+ * Pair with @tailwind-expand/babel to expand aliases in JSX.
+ * In development, aliases are preserved for debugging (Button text-sm ...).
+ * In production, only utilities are output for smaller bundles.
  *
  * Usage:
  * ```ts
  * // vite.config.ts
  * import tailwindExpandVite from '@tailwind-expand/vite'
  * import tailwindcss from '@tailwindcss/vite'
- *
- * export default defineConfig({
- *   plugins: [
- *     tailwindExpandVite(),
- *     tailwindcss(),
- *     // ...
- *   ],
- * })
- * ```
- *
- * @example
- * // vite.config.ts with tailwind-merge
- * import tailwindExpandVite from '@tailwind-expand/vite'
- * import tailwindcss from '@tailwindcss/vite'
+ * import tailwindExpandBabel from '@tailwind-expand/babel'
  * import { twMerge } from 'tailwind-merge'
  *
  * export default defineConfig({
  *   plugins: [
  *     tailwindExpandVite({ mergerFn: twMerge }),
  *     tailwindcss(),
- *     // ...
+ *     react({
+ *       babel: {
+ *         plugins: [tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge })],
+ *       },
+ *     }),
  *   ],
  * })
+ * ```
  */
 
 import {
@@ -85,7 +81,11 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
         scanSourceFiles(rootDir, expandedAliases, variantUtilities);
       }
 
-      const transformed = transformExpandBlocks(code, expandedAliases, variantUtilities);
+      const transformed = transformExpandBlocks(
+        code,
+        expandedAliases,
+        variantUtilities
+      );
 
       return {
         code: transformed,
@@ -98,9 +98,8 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
 export type { MergerFn };
 
 /**
- * Transform @expand blocks:
- * 1. First pass: extract all alias definitions
- * 2. Second pass: resolve alias references and convert to standard CSS
+ * Transform @expand blocks by stripping them and generating @source inline()
+ * for Tailwind to process all utilities.
  */
 function transformExpandBlocks(
   css: string,
@@ -113,7 +112,9 @@ function transformExpandBlocks(
   // Collect all base utilities
   const allUtilities = new Set<string>();
   for (const utils of Object.values(expanded) as string[]) {
-    utils.split(/\s+/).forEach((u: string) => allUtilities.add(u));
+    utils.split(/\s+/).forEach((u: string) => {
+      if (u) allUtilities.add(u);
+    });
   }
 
   // Add variant-prefixed utilities
@@ -121,10 +122,10 @@ function transformExpandBlocks(
     allUtilities.add(util);
   }
 
+  // Generate @source inline() for Tailwind to process
   if (allUtilities.size > 0) {
-    // Use @source inline to tell Tailwind to generate these utilities
-    // This ensures the utility classes exist when Babel expands aliases in JSX
-    result += `\n/* tailwind-expand: utilities for Tailwind to generate */\n@source inline("${[...allUtilities].join(' ')}");\n`;
+    const sortedUtilities = [...allUtilities].sort();
+    result += `\n/* tailwind-expand */\n@source inline("${sortedUtilities.join(' ')}");\n`;
   }
 
   return result;

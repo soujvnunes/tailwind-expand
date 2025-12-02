@@ -48,13 +48,16 @@ This approach has limitations:
 // Your component
 <button className="Button ButtonMd lg:Button" />
 
-// After build
-<button className="text-sm inline-flex items-center h-10 px-4 lg:text-sm lg:inline-flex lg:items-center" />
+// After build (debug: true)
+<button data-expand="Button ButtonMd lg:Button" className="text-sm inline-flex items-center h-10 px-4 lg:text-sm lg:inline-flex lg:items-center" />
 ```
+
+> With `debug: false` (default), `data-expand` is omitted.
 
 ### Benefits
 
-- **Full transparency**: DevTools shows actual utility classes
+- **Atomic CSS in production**: Inlined utilities = smaller bundles, deduplicated classes
+- **Semantic classes in development**: `.Button`, `.HomeHeroTitle` in DevTools for easy debugging
 - **Zero runtime**: All expansion happens at build time
 - **Variant support**: Use `lg:`, `hover:`, `!` prefixes with any alias
 - **Familiar syntax**: Define aliases using `@apply` you already know
@@ -81,7 +84,10 @@ export default defineConfig({
     tailwindcss(),
     react({
       babel: {
-        plugins: [tailwindExpandBabel({ cssPath: './src/globals.css' })],
+        plugins: [tailwindExpandBabel({
+          cssPath: './src/globals.css',
+          debug: process.env.NODE_ENV !== 'production',
+        })],
       },
     }),
   ],
@@ -248,8 +254,8 @@ Use Tailwind states with any alias. Each utility in the alias gets the state pre
 // Input
 <button className="Button ButtonSm lg:ButtonMd hover:ButtonPrimary !ButtonMd" />
 
-// Output (after build)
-<button className="text-xs font-bold uppercase inline-flex items-center h-8 px-3 lg:h-10 lg:px-4 hover:bg-primary hover:text-white hover:bg-primary/90 !h-10 !px-4" />
+// Output (debug: true)
+<button data-expand="Button ButtonSm lg:ButtonMd hover:ButtonPrimary !ButtonMd" className="text-xs font-bold uppercase inline-flex items-center h-8 px-3 lg:h-10 lg:px-4 hover:bg-primary hover:text-white hover:bg-primary/90 !h-10 !px-4" />
 ```
 
 ### Handling Utility Collisions
@@ -321,6 +327,16 @@ export default {
 // With mergerFn: twMerge
 <button className="font-bold uppercase inline-flex items-center text-sm" />
 ```
+
+## Plugin Options
+
+All plugins accept these options:
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `cssPath` | `string` | — | Path to CSS file containing `@expand` definitions |
+| `mergerFn` | `(classes: string) => string` | — | Function to resolve conflicting utilities (e.g., `twMerge`) |
+| `debug` | `boolean` | `false` | Add `data-expand` attribute with expanded alias names |
 
 ## Rules
 

@@ -2,28 +2,46 @@ import type { PluginObj, NodePath } from '@babel/core';
 import type * as t from '@babel/types';
 import { applyVariantPrefix, type AliasMap } from '@tailwind-expand/core';
 
-export function createBabelVisitor(aliases: AliasMap): PluginObj {
+export function createBabelVisitor(aliases: AliasMap, debug: boolean = false): PluginObj {
   return {
     name: 'tailwind-expand',
     visitor: {
-      JSXAttribute(path: NodePath<t.JSXAttribute>) {
-        const name = path.node.name;
+      JSXOpeningElement(path: NodePath<t.JSXOpeningElement>) {
+        const classNameAttr = path.node.attributes.find(
+          (attr): attr is t.JSXAttribute =>
+            attr.type === 'JSXAttribute' && isClassNameAttribute(attr.name)
+        );
 
-        // Only process className, class, classes
-        if (!isClassNameAttribute(name)) return;
+        if (!classNameAttr || !classNameAttr.value) return;
 
-        const value = path.node.value;
-        if (!value) return;
+        // Track expanded aliases for data-expand attribute
+        const expandedAliases = new Set<string>();
+
+        const value = classNameAttr.value;
 
         if (value.type === 'StringLiteral') {
-          // <div className="Button ButtonMd" />
-          value.value = expandClassString(value.value, aliases);
+          value.value = expandClassString(value.value, aliases, expandedAliases);
         } else if (
           value.type === 'JSXExpressionContainer' &&
           value.expression.type !== 'JSXEmptyExpression'
         ) {
-          // <div className={...} />
-          transformExpression(value.expression, aliases);
+          transformExpression(value.expression, aliases, expandedAliases);
+        }
+
+        // Add data-expand attribute if debug mode and aliases were expanded
+        if (debug && expandedAliases.size > 0) {
+          const dataExpandAttr: t.JSXAttribute = {
+            type: 'JSXAttribute',
+            name: {
+              type: 'JSXIdentifier',
+              name: 'data-expand',
+            },
+            value: {
+              type: 'StringLiteral',
+              value: [...expandedAliases].sort().join(' '),
+            },
+          };
+          path.node.attributes.push(dataExpandAttr);
         }
       },
     },
@@ -35,63 +53,74 @@ function isClassNameAttribute(name: t.JSXIdentifier | t.JSXNamespacedName): bool
   return ['className', 'class', 'classes'].includes(name.name);
 }
 
-function transformExpression(expr: t.Expression, aliases: AliasMap): void {
+function transformExpression(
+  expr: t.Expression,
+  aliases: AliasMap,
+  expandedAliases: Set<string>
+): void {
   switch (expr.type) {
     case 'StringLiteral':
-      // className={"Button ButtonMd"}
-      expr.value = expandClassString(expr.value, aliases);
+      expr.value = expandClassString(expr.value, aliases, expandedAliases);
       break;
 
     case 'TemplateLiteral':
-      // className={`Button ${x} ButtonMd`}
       expr.quasis.forEach((quasi) => {
         if (quasi.value.raw) {
-          quasi.value.raw = expandClassString(quasi.value.raw, aliases);
-          quasi.value.cooked = expandClassString(quasi.value.cooked || '', aliases);
+          quasi.value.raw = expandClassString(quasi.value.raw, aliases, expandedAliases);
+          quasi.value.cooked = expandClassString(
+            quasi.value.cooked || '',
+            aliases,
+            expandedAliases
+          );
         }
       });
       break;
 
     case 'CallExpression':
-      // className={cn("Button", condition && "ButtonMd")}
-      expr.arguments.forEach(arg => {
+      expr.arguments.forEach((arg) => {
         if (arg.type === 'StringLiteral') {
-          arg.value = expandClassString(arg.value, aliases);
+          arg.value = expandClassString(arg.value, aliases, expandedAliases);
         } else if (arg.type === 'LogicalExpression') {
-          // condition && "ButtonMd"
-          transformLogicalExpression(arg, aliases);
+          transformLogicalExpression(arg, aliases, expandedAliases);
         } else if (arg.type === 'ConditionalExpression') {
-          // condition ? "ButtonMd" : "ButtonLg"
-          transformConditionalExpression(arg, aliases);
+          transformConditionalExpression(arg, aliases, expandedAliases);
         }
       });
       break;
 
     case 'LogicalExpression':
-      transformLogicalExpression(expr, aliases);
+      transformLogicalExpression(expr, aliases, expandedAliases);
       break;
 
     case 'ConditionalExpression':
-      transformConditionalExpression(expr, aliases);
+      transformConditionalExpression(expr, aliases, expandedAliases);
       break;
   }
 }
 
-function transformLogicalExpression(expr: t.LogicalExpression, aliases: AliasMap): void {
+function transformLogicalExpression(
+  expr: t.LogicalExpression,
+  aliases: AliasMap,
+  expandedAliases: Set<string>
+): void {
   if (expr.right.type === 'StringLiteral') {
-    expr.right.value = expandClassString(expr.right.value, aliases);
+    expr.right.value = expandClassString(expr.right.value, aliases, expandedAliases);
   }
   if (expr.left.type === 'StringLiteral') {
-    expr.left.value = expandClassString(expr.left.value, aliases);
+    expr.left.value = expandClassString(expr.left.value, aliases, expandedAliases);
   }
 }
 
-function transformConditionalExpression(expr: t.ConditionalExpression, aliases: AliasMap): void {
+function transformConditionalExpression(
+  expr: t.ConditionalExpression,
+  aliases: AliasMap,
+  expandedAliases: Set<string>
+): void {
   if (expr.consequent.type === 'StringLiteral') {
-    expr.consequent.value = expandClassString(expr.consequent.value, aliases);
+    expr.consequent.value = expandClassString(expr.consequent.value, aliases, expandedAliases);
   }
   if (expr.alternate.type === 'StringLiteral') {
-    expr.alternate.value = expandClassString(expr.alternate.value, aliases);
+    expr.alternate.value = expandClassString(expr.alternate.value, aliases, expandedAliases);
   }
 }
 
@@ -99,11 +128,13 @@ function transformConditionalExpression(expr: t.ConditionalExpression, aliases: 
  * Core expansion logic for a class string
  * Handles: "Button lg:ButtonMd !ButtonMain"
  */
-export function expandClassString(classString: string, aliases: AliasMap): string {
+export function expandClassString(
+  classString: string,
+  aliases: AliasMap,
+  expandedAliases: Set<string>
+): string {
   const tokens = classString.split(/\s+/).filter(Boolean);
-
-  const expandedTokens = tokens.map((token) => expandToken(token, aliases));
-
+  const expandedTokens = tokens.map((token) => expandToken(token, aliases, expandedAliases));
   return expandedTokens.join(' ');
 }
 
@@ -115,7 +146,11 @@ export function expandClassString(classString: string, aliases: AliasMap): strin
  *   "!Button" → "!text-sm !inline-flex"
  *   "lg:hover:Button" → "lg:hover:text-sm lg:hover:inline-flex"
  */
-function expandToken(token: string, aliases: AliasMap): string {
+function expandToken(
+  token: string,
+  aliases: AliasMap,
+  expandedAliases: Set<string>
+): string {
   // Check for ! prefix
   let importantPrefix = '';
   let workingToken = token;
@@ -132,21 +167,22 @@ function expandToken(token: string, aliases: AliasMap): string {
   let aliasName = workingToken;
 
   if (lastColonIndex !== -1) {
-    variantPrefix = workingToken.slice(0, lastColonIndex + 1); // includes the colon
+    variantPrefix = workingToken.slice(0, lastColonIndex + 1);
     aliasName = workingToken.slice(lastColonIndex + 1);
   }
 
   // Check if it's a known alias (CamelCase and in map)
   if (!/^[A-Z][a-zA-Z0-9]*$/.test(aliasName) || !aliases[aliasName]) {
-    // Not an alias, return original token unchanged
     return token;
   }
+
+  // Track the full token (including variant prefix) for data-expand
+  expandedAliases.add(token);
 
   // Expand the alias
   const utilities = aliases[aliasName].split(/\s+/);
 
   const expanded = utilities.map((util) => {
-    // Apply variant prefix with deduplication, then add important prefix
     const prefixedUtil = applyVariantPrefix(variantPrefix, util);
     return importantPrefix + prefixedUtil;
   });

@@ -8,8 +8,8 @@ const nextConfig: NextConfig = {
     swcPlugins: [
       tailwindExpandSWC({
         cssPath: "./app/globals.css",
-        // Merge conflicting utilities (e.g., py-2 + py-4 → py-4)
         mergerFn: twMerge,
+        debug: process.env.NODE_ENV !== 'production',
       }),
     ],
   },

@@ -14,7 +14,11 @@ export default defineConfig({
     react({
       babel: {
         plugins: [
-          tailwindExpandBabel({ cssPath: './src/globals.css', mergerFn: twMerge }),
+          tailwindExpandBabel({
+            cssPath: './src/globals.css',
+            mergerFn: twMerge,
+            debug: process.env.NODE_ENV !== 'production',
+          }),
         ],
       },
     }),

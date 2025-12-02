@@ -83,7 +83,7 @@ describe('postcss plugin', () => {
     });
   });
 
-  describe('@source inline injection', () => {
+  describe('@source inline generation', () => {
     it('injects @source inline with expanded utilities', async () => {
       const css = `
 @expand Button { @apply text-sm inline-flex items-center; }
@@ -164,6 +164,64 @@ describe('postcss plugin', () => {
       expect(result).toContain('shadow');
       expect(result).toContain('border');
       expect(result).toContain('px-3');
+    });
+  });
+
+  describe('independent processing', () => {
+    it('processes each CSS input independently', async () => {
+      // First CSS version with text-gray-600
+      const cssV1 = `
+@expand Card {
+  @apply rounded-lg text-gray-600;
+}
+.keep { color: red; }
+`;
+      // Second CSS version with text-emerald-600
+      const cssV2 = `
+@expand Card {
+  @apply rounded-lg text-emerald-600;
+}
+.keep { color: red; }
+`;
+
+      const resultV1 = await process(cssV1);
+      expect(resultV1).toContain('text-gray-600');
+      expect(resultV1).not.toContain('text-emerald-600');
+
+      const resultV2 = await process(cssV2);
+      expect(resultV2).toContain('text-emerald-600');
+      // V2 should NOT contain V1's utilities (no accumulation)
+      expect(resultV2).not.toContain('text-gray-600');
+    });
+
+    it('processes nested changes independently', async () => {
+      const cssV1 = `
+@expand Card {
+  @apply rounded-lg;
+
+  &Body {
+    @apply text-gray-600;
+  }
+}
+.keep { color: red; }
+`;
+      const cssV2 = `
+@expand Card {
+  @apply rounded-lg;
+
+  &Body {
+    @apply text-emerald-600;
+  }
+}
+.keep { color: red; }
+`;
+
+      const resultV1 = await process(cssV1);
+      expect(resultV1).toContain('text-gray-600');
+
+      const resultV2 = await process(cssV2);
+      expect(resultV2).toContain('text-emerald-600');
+      expect(resultV2).not.toContain('text-gray-600');
     });
   });
 });
