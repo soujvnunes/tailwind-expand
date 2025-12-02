@@ -83,70 +83,13 @@ describe('postcss plugin', () => {
     });
   });
 
-  describe('development mode (CSS classes)', () => {
-    const processInDev = async (css: string) => {
-      const originalEnv = globalThis.process.env.NODE_ENV;
-      globalThis.process.env.NODE_ENV = 'development';
-      try {
-        const result = await postcss([postcssPlugin({ root: __dirname })]).process(css, {
-          from: undefined,
-        });
-        return result.css;
-      } finally {
-        globalThis.process.env.NODE_ENV = originalEnv;
-      }
-    };
-
-    it('generates CSS classes with @apply in dev mode', async () => {
-      const css = `
-@expand Button { @apply text-sm inline-flex items-center; }
-.keep { color: red; }
-`;
-      const result = await processInDev(css);
-
-      // In dev mode, generates CSS classes for HMR
-      expect(result).toContain('.Button { @apply text-sm inline-flex items-center; }');
-      expect(result).toContain('.keep { color: red; }');
-    });
-
-    it('generates nested CSS classes in dev mode', async () => {
-      const css = `
-@expand Button {
-  @apply text-sm;
-
-  &Md {
-    @apply h-10 px-4;
-  }
-}
-.keep { color: red; }
-`;
-      const result = await processInDev(css);
-
-      expect(result).toContain('.Button { @apply text-sm; }');
-      expect(result).toContain('.ButtonMd { @apply h-10 px-4; }');
-    });
-  });
-
-  describe('production mode (@source inline)', () => {
-    const processInProd = async (css: string) => {
-      const originalEnv = globalThis.process.env.NODE_ENV;
-      globalThis.process.env.NODE_ENV = 'production';
-      try {
-        const result = await postcss([postcssPlugin({ root: __dirname })]).process(css, {
-          from: undefined,
-        });
-        return result.css;
-      } finally {
-        globalThis.process.env.NODE_ENV = originalEnv;
-      }
-    };
-
+  describe('@source inline generation', () => {
     it('injects @source inline with expanded utilities', async () => {
       const css = `
 @expand Button { @apply text-sm inline-flex items-center; }
 .keep { color: red; }
 `;
-      const result = await processInProd(css);
+      const result = await process(css);
 
       expect(result).toContain('@source inline');
       expect(result).toContain('text-sm');
@@ -165,7 +108,7 @@ describe('postcss plugin', () => {
 }
 .keep { color: red; }
 `;
-      const result = await processInProd(css);
+      const result = await process(css);
 
       expect(result).toContain('@source inline');
       expect(result).toContain('text-sm');
