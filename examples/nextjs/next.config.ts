@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       tailwindExpandSWC({
         cssPath: "./app/globals.css",
         mergerFn: twMerge,
+        debug: process.env.NODE_ENV !== 'production',
       }),
     ],
   },
