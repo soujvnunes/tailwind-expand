@@ -30,6 +30,19 @@ describe('swc plugin', () => {
       expect(options).toHaveProperty('aliases');
       expect(typeof options.aliases).toBe('object');
     });
+
+    it('debug defaults to false', () => {
+      const [, options] = tailwindExpandSWC({ cssPath: fixture('globals.css') });
+
+      expect(options).toHaveProperty('debug');
+      expect(options.debug).toBe(false);
+    });
+
+    it('debug can be set to true', () => {
+      const [, options] = tailwindExpandSWC({ cssPath: fixture('globals.css'), debug: true });
+
+      expect(options.debug).toBe(true);
+    });
   });
 
   describe('alias extraction', () => {

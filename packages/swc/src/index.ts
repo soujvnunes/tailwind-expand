@@ -1,27 +1,12 @@
 import { dirname, join, resolve, relative } from 'path';
 import { fileURLToPath } from 'url';
-import { extract, expand, type MergerFn } from '@tailwind-expand/core';
+import { extract, expand, type ExpandPluginOptions } from '@tailwind-expand/core';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const absolutePath = resolve(join(__dirname, '..', 'tailwind_expand_swc.wasm'));
 
 // Use relative path for Turbopack compatibility (https://github.com/vercel/next.js/issues/78156)
 const wasmPath = relative(process.cwd(), absolutePath);
-
-export interface SwcPluginOptions {
-  /**
-   * Path to the CSS file containing @expand definitions.
-   * Used to extract and expand aliases at config time.
-   */
-  cssPath: string;
-
-  /**
-   * Optional function to merge conflicting Tailwind utilities.
-   * If provided, utilities like "py-2 py-4" will be merged to just "py-4".
-   * Recommended: use `twMerge` from 'tailwind-merge' package.
-   */
-  mergerFn?: MergerFn;
-}
 
 /**
  * Creates an SWC plugin configuration for tailwind-expand.
@@ -55,14 +40,14 @@ export interface SwcPluginOptions {
  * ```
  */
 export default function tailwindExpandSWC(
-  options: SwcPluginOptions
-): [string, { aliases: Record<string, string> }] {
-  const { cssPath, mergerFn } = options;
+  options: ExpandPluginOptions
+): [string, { aliases: Record<string, string>; debug: boolean }] {
+  const { cssPath, mergerFn, debug = false } = options;
 
   // Extract aliases from CSS at config time
   const absoluteCssPath = resolve(cssPath);
   const { aliases: rawAliases } = extract(absoluteCssPath);
   const aliases = expand(rawAliases, { mergerFn });
 
-  return [wasmPath, { aliases }];
+  return [wasmPath, { aliases, debug }];
 }
