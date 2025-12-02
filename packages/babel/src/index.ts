@@ -35,7 +35,7 @@ function babelPlugin(
     cache.set(cacheKey, expandedAliases);
   }
 
-  return createBabelVisitor(expandedAliases);
+  return createBabelVisitor(expandedAliases, options.debug ?? false);
 }
 
 /**
