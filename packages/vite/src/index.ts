@@ -108,14 +108,19 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
     handleHotUpdate(ctx: HmrContext) {
       const { file } = ctx;
 
+      // The server may be null during build or before configureServer runs.
+      if (!server) {
+        return;
+      }
+
       // If a CSS file with @expand blocks changed, restart server
       // to clear all caches including @vitejs/plugin-react's babel cache
-      if (expandCssFiles.has(file) && server) {
+      if (expandCssFiles.has(file)) {
         server.restart();
         return [];
       }
 
-      return;
+      return undefined;
     },
   };
 }
