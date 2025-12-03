@@ -80,7 +80,6 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
         return null;
       }
 
-
       // Track this CSS file for HMR
       expandCssFiles.add(id);
 
