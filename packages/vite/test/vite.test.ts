@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import type { ViteDevServer, HmrContext } from 'vite';
 import tailwindExpandVite from '../src/index';
 
 describe('vite plugin', () => {
@@ -162,6 +163,102 @@ describe('vite plugin', () => {
       expect(result?.code).toContain('shadow');
       expect(result?.code).toContain('border');
       expect(result?.code).toContain('px-3');
+    });
+  });
+
+  describe('HMR handling', () => {
+    it('returns ctx.modules when server is not configured', async () => {
+      const plugin = tailwindExpandVite();
+      const mockModules = [{ id: 'test' }];
+      const ctx = { file: 'globals.css', modules: mockModules } as unknown as HmrContext;
+
+      // handleHotUpdate called before configureServer
+      const result = await plugin.handleHotUpdate(ctx);
+      expect(result).toBe(mockModules);
+    });
+
+    it('returns ctx.modules for non-tracked CSS files', async () => {
+      const plugin = tailwindExpandVite();
+      plugin.configResolved({ root: '/fake' });
+
+      const mockServer = { restart: vi.fn() } as unknown as ViteDevServer;
+      plugin.configureServer(mockServer);
+
+      const mockModules = [{ id: 'test' }];
+      const ctx = { file: 'untracked.css', modules: mockModules } as unknown as HmrContext;
+
+      const result = await plugin.handleHotUpdate(ctx);
+      expect(result).toBe(mockModules);
+      expect(mockServer.restart).not.toHaveBeenCalled();
+    });
+
+    it('restarts server when tracked CSS file changes', async () => {
+      const plugin = tailwindExpandVite();
+      plugin.configResolved({ root: '/fake' });
+
+      const mockServer = { restart: vi.fn() } as unknown as ViteDevServer;
+      plugin.configureServer(mockServer);
+
+      // First, transform a CSS file with @expand to track it
+      const css = '@expand Button { @apply text-sm; }';
+      plugin.transform(css, '/path/to/globals.css');
+
+      // Now trigger HMR for that file
+      const ctx = { file: '/path/to/globals.css', modules: [{ id: 'test' }] } as unknown as HmrContext;
+      const result = await plugin.handleHotUpdate(ctx);
+
+      expect(result).toEqual([]);
+      expect(mockServer.restart).toHaveBeenCalledOnce();
+    });
+
+    it('clears tracked files on server restart', async () => {
+      const plugin = tailwindExpandVite();
+      plugin.configResolved({ root: '/fake' });
+
+      // Track a file
+      const css = '@expand Button { @apply text-sm; }';
+      plugin.transform(css, '/path/to/globals.css');
+
+      // Configure server (simulates restart which should clear tracking)
+      const mockServer = { restart: vi.fn() } as unknown as ViteDevServer;
+      plugin.configureServer(mockServer);
+
+      // File should no longer be tracked after configureServer
+      const ctx = { file: '/path/to/globals.css', modules: [{ id: 'test' }] } as unknown as HmrContext;
+      const result = await plugin.handleHotUpdate(ctx);
+
+      // Since we cleared and haven't re-transformed, file won't be tracked
+      expect(result).toEqual([{ id: 'test' }]);
+      expect(mockServer.restart).not.toHaveBeenCalled();
+    });
+
+    it('stops tracking CSS files that no longer have @expand blocks', async () => {
+      const plugin = tailwindExpandVite();
+      plugin.configResolved({ root: '/fake' });
+
+      const mockServer = { restart: vi.fn() } as unknown as ViteDevServer;
+      plugin.configureServer(mockServer);
+
+      // First transform with @expand
+      const cssWithExpand = '@expand Button { @apply text-sm; }';
+      plugin.transform(cssWithExpand, '/path/to/globals.css');
+
+      // Verify it triggers restart
+      let ctx = { file: '/path/to/globals.css', modules: [{ id: 'test' }] } as unknown as HmrContext;
+      await plugin.handleHotUpdate(ctx);
+      expect(mockServer.restart).toHaveBeenCalledOnce();
+
+      vi.mocked(mockServer.restart).mockClear();
+
+      // Now transform without @expand (simulates user removing @expand blocks)
+      const cssWithoutExpand = '.button { color: red; }';
+      plugin.transform(cssWithoutExpand, '/path/to/globals.css');
+
+      // Should no longer trigger restart
+      ctx = { file: '/path/to/globals.css', modules: [{ id: 'test' }] } as unknown as HmrContext;
+      const result = await plugin.handleHotUpdate(ctx);
+      expect(result).toEqual([{ id: 'test' }]);
+      expect(mockServer.restart).not.toHaveBeenCalled();
     });
   });
 });

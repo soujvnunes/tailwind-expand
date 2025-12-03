@@ -33,7 +33,6 @@
  */
 
 import type { ViteDevServer, HmrContext } from 'vite';
-import { existsSync } from 'fs';
 import {
   extractFromCSS,
   expand,
@@ -53,7 +52,9 @@ export interface VitePluginOptions {
 export default function tailwindExpandVite(options: VitePluginOptions = {}) {
   // Store collected variant-prefixed utilities from JSX files
   const variantUtilities = new Set<string>();
-  // Store expanded aliases for resolving variants
+  // Store expanded aliases for resolving variants.
+  // Note: This design assumes a single CSS file with @expand blocks.
+  // Multiple CSS files would overwrite each other's aliases.
   let expandedAliases: AliasMap = {};
   let rootDir = '';
   // Track CSS files with @expand blocks for HMR
@@ -116,13 +117,6 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
       // The server may be null during build or before configureServer runs.
       if (!server) {
         return ctx.modules;
-      }
-
-      // Handle file deletion: remove from tracking and restart
-      if (expandCssFiles.has(file) && !existsSync(file)) {
-        expandCssFiles.delete(file);
-        await server.restart();
-        return [];
       }
 
       // If a CSS file with @expand blocks changed, restart server
