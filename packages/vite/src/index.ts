@@ -69,6 +69,9 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
 
     configureServer(devServer: ViteDevServer) {
       server = devServer;
+      // Clear tracked CSS files on server restart to prevent memory leaks
+      // from deleted/renamed files in long-running dev sessions
+      expandCssFiles.clear();
     },
 
     transform(code: string, id: string) {
