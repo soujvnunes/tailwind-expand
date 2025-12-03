@@ -122,7 +122,8 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
         return [];
       }
 
-      return undefined;
+      // For non-tracked CSS files, proceed with default HMR handling
+      return ctx.modules;
     },
   };
 }
