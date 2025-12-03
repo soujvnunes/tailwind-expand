@@ -33,6 +33,7 @@
  */
 
 import type { ViteDevServer, HmrContext } from 'vite';
+import { existsSync } from 'fs';
 import {
   extractFromCSS,
   expand,
@@ -80,6 +81,8 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
       }
 
       if (!code.includes('@expand')) {
+        // Remove from tracking if file no longer has @expand blocks
+        expandCssFiles.delete(id);
         return null;
       }
 
@@ -115,6 +118,13 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
         return;
       }
 
+      // Handle file deletion: remove from tracking and restart
+      if (expandCssFiles.has(file) && !existsSync(file)) {
+        expandCssFiles.delete(file);
+        await server.restart();
+        return [];
+      }
+
       // If a CSS file with @expand blocks changed, restart server
       // to clear all caches including @vitejs/plugin-react's babel cache
       if (expandCssFiles.has(file)) {
@@ -122,7 +132,7 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
         return [];
       }
 
-      // For non-tracked CSS files, proceed with default HMR handling
+      // For non-tracked files, proceed with default HMR handling
       return ctx.modules;
     },
   };
