@@ -1,5 +1,11 @@
 # @tailwind-expand/babel
 
+## 0.5.1
+
+### Patch Changes
+
+- 5bdce04: docs: align package READMEs with main documentation
+
 ## 0.5.0
 
 ### Minor Changes

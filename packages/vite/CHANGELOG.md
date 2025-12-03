@@ -1,5 +1,11 @@
 # @tailwind-expand/vite
 
+## 0.4.3
+
+### Patch Changes
+
+- 5bdce04: docs: align package READMEs with main documentation
+
 ## 0.4.2
 
 ### Patch Changes
