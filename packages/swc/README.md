@@ -2,8 +2,6 @@
 
 SWC plugin for tailwind-expand. Inlines className aliases into utility classes in Next.js with Turbopack.
 
-**Use in production only** for atomic CSS benefits (smaller bundles). In development, PostCSS generates semantic CSS classes (`.Button`, `.HomeHeroTitle`) for easier debugging.
-
 ## Installation
 
 ```bash
@@ -16,15 +14,9 @@ pnpm add -D @tailwind-expand/swc @tailwind-expand/postcss
 // next.config.ts
 import tailwindExpandSWC from '@tailwind-expand/swc'
 
-const isProd = process.env.NODE_ENV === 'production'
-
 const nextConfig = {
   experimental: {
-    // Production: inline utilities for atomic CSS
-    // Development: semantic .Button classes for debugging
-    swcPlugins: isProd
-      ? [tailwindExpandSWC({ cssPath: './app/globals.css' })]
-      : [],
+    swcPlugins: [tailwindExpandSWC({ cssPath: './app/globals.css' })],
   },
 }
 
@@ -37,6 +29,31 @@ export default {
   plugins: {
     '@tailwind-expand/postcss': {},
     '@tailwindcss/postcss': {},
+  },
+}
+```
+
+## Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `cssPath` | `string` | — | Path to CSS file containing `@expand` definitions (required) |
+| `mergerFn` | `(classes: string) => string` | — | Function to resolve conflicting utilities (e.g., `twMerge`) |
+| `debug` | `boolean` | `false` | Add `data-expand` attribute with expanded alias names |
+
+### With tailwind-merge and debug mode
+
+```ts
+import tailwindExpandSWC from '@tailwind-expand/swc'
+import { twMerge } from 'tailwind-merge'
+
+const nextConfig = {
+  experimental: {
+    swcPlugins: [tailwindExpandSWC({
+      cssPath: './app/globals.css',
+      mergerFn: twMerge,
+      debug: process.env.NODE_ENV !== 'production',
+    })],
   },
 }
 ```
