@@ -102,6 +102,8 @@ Run `pnpm dev:watch` instead of `pnpm dev`.
 
 **Note:** This restarts the entire server, so React state is lost. It's a workaround, not true HMR.
 
+You can follow up on the [discussion regarding HMR support](https://github.com/vercel/next.js/discussions/86782) in the Next.js repository.
+
 ## Building from Source
 
 ### Prerequisites
