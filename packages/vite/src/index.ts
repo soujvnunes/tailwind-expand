@@ -32,6 +32,7 @@
  * ```
  */
 
+import type { ViteDevServer, HmrContext } from 'vite';
 import {
   extractFromCSS,
   expand,
@@ -51,9 +52,14 @@ export interface VitePluginOptions {
 export default function tailwindExpandVite(options: VitePluginOptions = {}) {
   // Store collected variant-prefixed utilities from JSX files
   const variantUtilities = new Set<string>();
-  // Store expanded aliases for resolving variants
+  // Store expanded aliases for resolving variants.
+  // Note: This design assumes a single CSS file with @expand blocks.
+  // Multiple CSS files would overwrite each other's aliases.
   let expandedAliases: AliasMap = {};
   let rootDir = '';
+  // Track CSS files with @expand blocks for HMR
+  const expandCssFiles = new Set<string>();
+  let server: ViteDevServer | null = null;
 
   return {
     name: 'tailwind-expand',
@@ -63,14 +69,26 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
       rootDir = config.root;
     },
 
+    configureServer(devServer: ViteDevServer) {
+      server = devServer;
+      // Clear tracked CSS files on server restart to prevent memory leaks
+      // from deleted/renamed files in long-running dev sessions
+      expandCssFiles.clear();
+    },
+
     transform(code: string, id: string) {
       if (!id.endsWith('.css')) {
         return null;
       }
 
       if (!code.includes('@expand')) {
+        // Remove from tracking if file no longer has @expand blocks
+        expandCssFiles.delete(id);
         return null;
       }
+
+      // Track this CSS file for HMR
+      expandCssFiles.add(id);
 
       // Extract and expand aliases from CSS using core
       const aliases = extractFromCSS(code);
@@ -91,6 +109,25 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
         code: transformed,
         map: null,
       };
+    },
+
+    async handleHotUpdate(ctx: HmrContext) {
+      const { file } = ctx;
+
+      // The server may be null during build or before configureServer runs.
+      if (!server) {
+        return ctx.modules;
+      }
+
+      // If a CSS file with @expand blocks changed, restart server
+      // to clear all caches including @vitejs/plugin-react's babel cache
+      if (expandCssFiles.has(file)) {
+        await server.restart();
+        return [];
+      }
+
+      // For non-tracked files, proceed with default HMR handling
+      return ctx.modules;
     },
   };
 }
