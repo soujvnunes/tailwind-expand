@@ -10,9 +10,14 @@
     "lint": "eslint"
   },
   "nodemonConfig": {
-    "watch": ["app/globals.css"],
+    "watch": [
+      "app/globals.css"
+    ],
     "ext": "css",
-    "ignore": [".next", "node_modules"],
+    "ignore": [
+      ".next",
+      "node_modules"
+    ],
     "exec": "next dev"
   },
   "dependencies": {

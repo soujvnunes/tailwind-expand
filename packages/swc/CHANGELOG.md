@@ -1,5 +1,13 @@
 # @tailwind-expand/swc
 
+## 0.5.2
+
+### Patch Changes
+
+- b18277d: docs(swc): document CSS alias development limitation and nodemon workaround
+
+  Added documentation explaining that CSS alias changes require a server restart in Next.js/Turbopack (not true HMR), with a workaround using nodemon to auto-restart the dev server.
+
 ## 0.5.1
 
 ### Patch Changes

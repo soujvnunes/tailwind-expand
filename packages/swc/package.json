@@ -1,6 +1,6 @@
 {
   "name": "@tailwind-expand/swc",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "SWC plugin for tailwind-expand - expand CSS aliases in SWC-based tools",
   "type": "module",
   "main": "./dist/index.cjs",
