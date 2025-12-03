@@ -32,6 +32,7 @@
  * ```
  */
 
+import type { ViteDevServer, HmrContext } from 'vite';
 import {
   extractFromCSS,
   expand,
@@ -54,6 +55,9 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
   // Store expanded aliases for resolving variants
   let expandedAliases: AliasMap = {};
   let rootDir = '';
+  // Track CSS files with @expand blocks for HMR
+  const expandCssFiles = new Set<string>();
+  let server: ViteDevServer | null = null;
 
   return {
     name: 'tailwind-expand',
@@ -61,6 +65,10 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
 
     configResolved(config: { root: string }) {
       rootDir = config.root;
+    },
+
+    configureServer(devServer: ViteDevServer) {
+      server = devServer;
     },
 
     transform(code: string, id: string) {
@@ -71,6 +79,10 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
       if (!code.includes('@expand')) {
         return null;
       }
+
+
+      // Track this CSS file for HMR
+      expandCssFiles.add(id);
 
       // Extract and expand aliases from CSS using core
       const aliases = extractFromCSS(code);
@@ -91,6 +103,19 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
         code: transformed,
         map: null,
       };
+    },
+
+    handleHotUpdate(ctx: HmrContext) {
+      const { file } = ctx;
+
+      // If a CSS file with @expand blocks changed, restart server
+      // to clear all caches including @vitejs/plugin-react's babel cache
+      if (expandCssFiles.has(file) && server) {
+        server.restart();
+        return [];
+      }
+
+      return;
     },
   };
 }
