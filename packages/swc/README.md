@@ -82,7 +82,7 @@ Use nodemon to automatically restart the dev server when CSS changes:
 pnpm add -D nodemon
 ```
 
-Add to `package.json`:
+Add to `package.json` (adjust `watch` path to match your CSS file location):
 
 ```json
 {
