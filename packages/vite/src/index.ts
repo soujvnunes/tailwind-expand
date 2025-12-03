@@ -115,7 +115,7 @@ export default function tailwindExpandVite(options: VitePluginOptions = {}) {
 
       // The server may be null during build or before configureServer runs.
       if (!server) {
-        return;
+        return ctx.modules;
       }
 
       // Handle file deletion: remove from tracking and restart
