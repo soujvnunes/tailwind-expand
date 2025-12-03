@@ -68,6 +68,40 @@ The SWC plugin runs inside a WASI sandbox which cannot access the filesystem dir
 
 The WASM plugin then transforms JSX className attributes using the provided aliases.
 
+## Development Limitation
+
+**CSS alias changes require a server restart.** This is not true HMR.
+
+Because aliases are read at config load time (not during transform), changes to `@expand` blocks in your CSS won't be reflected until the dev server restarts. Turbopack caches SWC transform results and doesn't expose cache invalidation APIs.
+
+### Workaround: Auto-restart with nodemon
+
+Use nodemon to automatically restart the dev server when CSS changes:
+
+```bash
+pnpm add -D nodemon
+```
+
+Add to `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev:watch": "nodemon"
+  },
+  "nodemonConfig": {
+    "watch": ["app/globals.css"],
+    "ext": "css",
+    "ignore": [".next", "node_modules"],
+    "exec": "next dev"
+  }
+}
+```
+
+Run `pnpm dev:watch` instead of `pnpm dev`.
+
+**Note:** This restarts the entire server, so React state is lost. It's a workaround, not true HMR.
+
 ## Building from Source
 
 ### Prerequisites

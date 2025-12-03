@@ -123,6 +123,8 @@ export default {
 }
 ```
 
+> **Note:** CSS alias changes require a server restart. See [@tailwind-expand/swc](./packages/swc#development-limitation) for a workaround.
+
 ### Other Frameworks
 
 For frameworks using PostCSS (see [Tailwind PostCSS installation](https://tailwindcss.com/docs/installation/using-postcss)):

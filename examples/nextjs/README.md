@@ -1,18 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a [Next.js](https://nextjs.org) example using `@tailwind-expand/swc` for className alias expansion with Turbopack.
 
 ## Getting Started
 
-First, run the development server:
+Run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
-# or
-bun dev
 ```
+
+### CSS Alias Changes During Development
+
+CSS alias changes (`@expand` blocks) require a server restart. Use `dev:watch` for auto-restart:
+
+```bash
+pnpm dev:watch
+```
+
+This uses nodemon to restart the server when `app/globals.css` changes.
+
+**Note:** This is not true HMR - React state is lost on restart. See [@tailwind-expand/swc README](../../packages/swc/README.md#development-limitation) for details.
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
